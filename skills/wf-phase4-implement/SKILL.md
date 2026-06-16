@@ -25,16 +25,25 @@ $ARGUMENTS
    - `specDir` = `docs/specs`
    - `archiveDir` = `docs/specs/archive`
 3. Use `{specDir}` and `{archiveDir}` throughout this skill
+4. Find the main worktree root:
+   ```
+   Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
+   Use the result as GIT_MAIN_ROOT. All context files live at:
+     {GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json
+   Falls back to .claude/workflow/ if git command fails.
+   ```
 
 ### Step 1: Handle Missing Arguments / Auto-Detect Spec
 
 If no spec path was provided:
 
-1. Check `.claude/workflow/phase-context.json` for recent context (within 24 hours, lastPhase=wf-phase3-consolidate)
-2. If valid context found, ask user if they want to continue with it
-3. Otherwise, use Glob to find specs: `{specDir}/*/*.md`
-4. Filter for `*_SPEC.md` files with Phase 3 consolidation but no Phase 5 verification
-5. If multiple eligible specs, use AskUserQuestion to select one
+1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, use it as the context file.
+2. Check the context file for recent context (within 24 hours, lastPhase=wf-phase3-consolidate)
+3. If valid context found, ask user if they want to continue with it
+   - **Worktree note**: If `worktreePath` is set in the context, note this to the user and display the worktree path. Implementation should run from that directory.
+4. Otherwise, use Glob to find specs: `{specDir}/*/*.md`
+5. Filter for `*_SPEC.md` files with Phase 3 consolidation but no Phase 5 verification
+6. If multiple eligible specs, use AskUserQuestion to select one
 
 ### Step 2: Validate Phase
 

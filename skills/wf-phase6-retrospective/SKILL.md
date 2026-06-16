@@ -23,12 +23,20 @@ $ARGUMENTS
    - `specDir` = `docs/specs`
    - `archiveDir` = `docs/specs/archive`
    - `roadmapFile` = `ROADMAP.md`
+3. Find the main worktree root:
+   ```
+   Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
+   Use the result as GIT_MAIN_ROOT. All context files live at:
+     {GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json
+   Falls back to .claude/workflow/ if git command fails.
+   ```
 
 ### Step 1: Handle Missing Arguments / Auto-Detect Spec
 
 If no spec path was provided:
 
-1. Use Glob to find active specs: `{specDir}/*/*.md`
+1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, check it for `specPath` and `worktreePath` to use below.
+2. Use Glob to find active specs: `{specDir}/*/*.md`
 2. Filter for `*_SPEC.md` files with Status: "IMPLEMENTED"
 3. Check which specs have PHASE5_VERIFICATION.md but no PHASE6_RETROSPECTIVE.md
 4. If multiple found, use AskUserQuestion to ask which to retrospect
@@ -211,7 +219,33 @@ Remove `{specDir}/{feature-dir}/` directory if now empty.
 
 ### Step 12: Clear Workflow Context
 
-Delete `.claude/workflow/phase-context.json` — feature workflow is complete.
+Delete `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json` — feature workflow is complete.
+
+### Step 12b: Offer Worktree Removal (if applicable)
+
+If `worktreePath` was present in the context file (read in Step 1 or from context loaded earlier):
+
+Use AskUserQuestion:
+- header: "Remove git worktree?"
+- question: "The feature was developed in a worktree at `{worktreePath}`. Remove it now?"
+- option1: label="Yes — remove worktree", description="Runs: git worktree remove \"{worktreePath}\""
+- option2: label="No — keep it", description="Leave the worktree in place"
+
+If user selects "Yes":
+```bash
+git worktree remove "{worktreePath}"
+```
+
+Then use AskUserQuestion:
+- header: "Delete feature branch?"
+- question: "Also delete the feature branch `{branchName}`?"
+- option1: label="Yes — delete branch", description="Runs: git branch -d \"{branchName}\""
+- option2: label="No — keep branch", description="Leave the branch for reference"
+
+If user selects "Yes":
+```bash
+git branch -d "{branchName}"
+```
 
 ### Step 13: Output Summary
 

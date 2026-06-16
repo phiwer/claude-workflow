@@ -168,12 +168,24 @@ Before writing, check:
 - Does `{specDir}` directory exist? Warn if not (it will be created by wf-phase1-spec)
 - Does `{roadmapFile}` exist? Warn if not (wf-phase1-spec needs it to suggest features)
 
+Then ask about git worktrees:
+
+Use AskUserQuestion:
+- header: "Git worktrees?"
+- question: "Enable git worktrees for parallel feature development? Specify a base directory where worktrees will be created (e.g. `..` for sibling directories)."
+- option1: label="Yes — set base dir", description="Enter path relative to project root. E.g. `..` creates worktrees as siblings."
+- option2: label="No — skip", description="Work on one feature at a time without worktrees"
+
+If "Yes — set base dir": prompt for the base directory path and set `worktreeBase` to that value.
+If "No — skip": set `worktreeBase` to `null`.
+
 Write `.claude/workflow/project-config.json`:
 ```json
 {
   "specDir": "{specDir}",
   "archiveDir": "{archiveDir}",
-  "roadmapFile": "{roadmapFile}"
+  "roadmapFile": "{roadmapFile}",
+  "worktreeBase": {worktreeBase or null}
 }
 ```
 

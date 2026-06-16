@@ -22,12 +22,20 @@ $ARGUMENTS
 2. Extract values (defaults if absent):
    - `specDir` = `docs/specs`
    - `archiveDir` = `docs/specs/archive`
+3. Find the main worktree root:
+   ```
+   Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
+   Use the result as GIT_MAIN_ROOT. All context files live at:
+     {GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json
+   Falls back to .claude/workflow/ if git command fails.
+   ```
 
 ### Step 1: Handle Missing Arguments / Auto-Detect Spec
 
 If no spec path was provided:
 
-1. Use Glob to find active specs: `{specDir}/*/*.md`
+1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, check it for a recent `specPath` to use.
+2. Use Glob to find active specs: `{specDir}/*/*.md`
 2. Filter for `*_SPEC.md` files with Status: "READY FOR IMPLEMENTATION" or similar
 3. Check which specs have PHASE3_CONSOLIDATION.md but no PHASE5_VERIFICATION.md
 4. If multiple found, use AskUserQuestion to ask which to verify

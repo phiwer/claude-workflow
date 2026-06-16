@@ -25,6 +25,13 @@ $ARGUMENTS
    - `specDir` = `docs/specs`
    - `archiveDir` = `docs/specs/archive`
 3. Use `{specDir}` and `{archiveDir}` throughout this skill
+4. Find the main worktree root:
+   ```
+   Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
+   Use the result as GIT_MAIN_ROOT. All context files live at:
+     {GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json
+   Falls back to .claude/workflow/ if git command fails.
+   ```
 
 ### Step 1: Handle Missing Arguments / Auto-Detect Spec
 
@@ -32,8 +39,9 @@ $ARGUMENTS
 
 If no spec path was provided in arguments:
 
-1. Check if `.claude/workflow/phase-context.json` exists
-2. If exists:
+1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, use it. Use the found file as the context file path below.
+2. Check if the context file exists
+3. If exists:
    - Read and parse the JSON
    - Check if timestamp is within 24 hours (ignore if older)
    - Check if `lastPhase` is `wf-phase1-spec` (expected previous phase)
@@ -43,7 +51,7 @@ If no spec path was provided in arguments:
      - option1: label="Yes, continue with {specPath}", description="Use saved context from wf-phase1-spec"
      - option2: label="No, start fresh", description="Ignore context and auto-detect specs"
    - If user selects "Yes": use `specPath` from context
-   - If user selects "No": delete context file and continue to step 1b
+   - If user selects "No": delete the context file and continue to step 1b
 
 #### 1b: Auto-Detect (if no context or user chose fresh start)
 
@@ -156,7 +164,7 @@ Then proceed to the Next Step section.
 
 #### Write Context File
 
-Create/update `.claude/workflow/phase-context.json`:
+Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 
 ```json
 {

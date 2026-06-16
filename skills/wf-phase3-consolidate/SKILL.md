@@ -23,6 +23,13 @@ $ARGUMENTS
    - `specDir` = `docs/specs`
    - `archiveDir` = `docs/specs/archive`
 3. Use `{specDir}` and `{archiveDir}` throughout this skill
+4. Find the main worktree root:
+   ```
+   Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
+   Use the result as GIT_MAIN_ROOT. All context files live at:
+     {GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json
+   Falls back to .claude/workflow/ if git command fails.
+   ```
 
 ### Step 1: Handle Missing Arguments / Auto-Detect Spec
 
@@ -30,8 +37,9 @@ $ARGUMENTS
 
 If no spec path was provided in arguments:
 
-1. Check if `.claude/workflow/phase-context.json` exists
-2. If exists:
+1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, use it. Use the found file as the context file path below.
+2. Check if the context file exists
+3. If exists:
    - Read and parse the JSON
    - Check if timestamp is within 24 hours (ignore if older)
    - Check if `lastPhase` is `wf-phase2-review`
@@ -43,7 +51,7 @@ If no spec path was provided in arguments:
    - If user selects "Yes":
      - Use `specPath` from context
      - Display context summary: verdict, critical issues count, questions for Phase 3
-   - If user selects "No": delete context file and continue to step 1b
+   - If user selects "No": delete the context file and continue to step 1b
 
 #### 1b: Auto-Detect (if no context or user chose fresh start)
 
@@ -232,7 +240,7 @@ Then proceed to Step 9.
 
 #### 9a: Write Context File
 
-Create/update `.claude/workflow/phase-context.json`:
+Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 
 ```json
 {
@@ -259,7 +267,7 @@ If interface files were created in Step 7, display:
 > **Next**: Review the interface files with your team. Once agreed, start a new
 > session and run `/wf-phase4-implement` — context will auto-load.
 
-Otherwise, read `complexityTier` from `.claude/workflow/phase-context.json` and display:
+Otherwise, read `complexityTier` from `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json` and display:
 
 **Simple or Medium tier** — display:
 > Phase 3 complete. Context saved.

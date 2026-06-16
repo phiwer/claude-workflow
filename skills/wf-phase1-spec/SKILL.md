@@ -32,7 +32,15 @@ $ARGUMENTS
    - `specDir` = `docs/specs`
    - `archiveDir` = `docs/specs/archive`
    - `roadmapFile` = `ROADMAP.md`
+   - `worktreeBase` = `null` (optional)
 3. Use `{specDir}`, `{archiveDir}`, and `{roadmapFile}` throughout this skill
+4. Find the main worktree root:
+   ```
+   Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
+   Use the result as GIT_MAIN_ROOT. All context files live at:
+     {GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json
+   Falls back to .claude/workflow/ if git command fails.
+   ```
 
 ### Step 1: Handle Missing Arguments
 
@@ -227,7 +235,7 @@ Then proceed to Step 7.
 
 #### 7a: Write Context File
 
-Create/update `.claude/workflow/phase-context.json`:
+Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 
 ```json
 {
@@ -247,9 +255,29 @@ Create/update `.claude/workflow/phase-context.json`:
 }
 ```
 
+#### 7a2: Create Git Worktree (if configured)
+
+If `worktreeBase` is set (non-null) in `project-config.json`:
+
+1. Derive the project directory name from the current repo root (last path component of `GIT_MAIN_ROOT`).
+2. Compute the feature ID in lowercase (e.g., `SF-14` → `sf-14`).
+3. Run:
+   ```bash
+   git worktree add "{worktreeBase}/{project-dir-name}-{feature-id-lowercase}" -b "feature/{feature-id-lowercase}"
+   ```
+4. Save `worktreePath` and `branchName` to the context file written in 7a:
+   - `"worktreePath": "{worktreeBase}/{project-dir-name}-{feature-id-lowercase}"`
+   - `"branchName": "feature/{feature-id-lowercase}"`
+5. Display the worktree path to the user:
+   ```
+   Git worktree created: {worktreePath}
+   Branch: {branchName}
+   Implementation phases will run from this directory.
+   ```
+
 #### 7b: Phase Complete — Next Steps
 
-Display the recommended next command based on the `complexityTier` saved to `phase-context.json`:
+Display the recommended next command based on the `complexityTier` saved to `{FEATURE-ID}-context.json`:
 
 **Simple tier** — display:
 > Phase 1 complete. Context saved.
