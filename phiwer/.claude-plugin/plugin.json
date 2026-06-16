@@ -7,10 +7,7 @@
     "url": "https://github.com/phiwer"
   },
   "homepage": "https://github.com/phiwer/claude-workflow",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/phiwer/claude-workflow.git"
-  },
+  "repository": "https://github.com/phiwer/claude-workflow.git",
   "license": "MIT",
   "keywords": ["workflow", "skills", "feature-development", "spec", "review"]
 }
