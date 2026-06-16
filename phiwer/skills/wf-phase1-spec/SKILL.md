@@ -53,7 +53,7 @@ If no feature ID was provided in arguments:
 
 ### Step 1.5: Confirm Feature Scope with User
 
-Once you have a feature ID:
+**Do not touch the codebase yet.** This step reads only the roadmap.
 
 1. Read `{roadmapFile}` and extract the entry for the feature — its name, description, and any listed requirements or acceptance criteria
 2. Display a concise summary to the user:
@@ -64,14 +64,13 @@ Once you have a feature ID:
    - **"Does this look right? Anything to add, clarify, or constrain before I write the spec?"**
    - Provide two options: "Looks good — proceed as-is" and "I have additional context" (free text via Other)
 4. If the user provides additional context, note it — you will incorporate it during spec generation in Step 5
-5. Then continue to Step 2
+5. **Only after the user has responded**, continue to Step 2
 
 ### Step 2: Gather Context
 
-Once you have a feature ID:
+Now that the user has confirmed the feature scope, explore the codebase:
 
-1. Read `{roadmapFile}` to find the feature description and requirements
-2. Read `CLAUDE.md` to understand existing patterns and implemented features
+1. Read `CLAUDE.md` to understand existing patterns and implemented features
 3. Check for any reference documentation in the repo (e.g., `docs/`, `references/`, `specs/`)
 4. Review related existing specs in `{specDir}/` for format and patterns
 5. Check existing code for any partial implementations or related systems
