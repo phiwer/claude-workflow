@@ -119,7 +119,32 @@ Each feature gets its own git branch and worktree, so you can work on multiple f
 }
 ```
 
-**How it works:** when `worktreeBase` is set, `wf-phase1-spec` automatically creates a worktree and branch (`feature/{feature-id}`) after generating the spec. Each feature has its own context file (`{FEATURE-ID}-context.json`), so phases for SF-14 and SF-15 never overwrite each other. For implementation, open a Claude Code session in the worktree directory — all phases find the shared context automatically via `git worktree list`. Phase6 offers to remove the worktree and branch when the feature is complete.
+**How it works:** when `worktreeBase` is set, `wf-phase1-spec` automatically creates a worktree and branch (`feature/{feature-id}`) after generating the spec. Each feature has its own context file (`{FEATURE-ID}-context.json`), so phases for SF-14 and SF-15 never overwrite each other.
+
+**Typical worktree flow:**
+
+```
+# In your main project directory
+/phiwer:wf-phase1-spec SF-14
+# → spec written, worktree created at ../myproject-sf-14 on branch feature/sf-14
+
+/phiwer:wf-phase2-review
+/phiwer:wf-phase3-consolidate
+# → spec is READY FOR IMPLEMENTATION
+
+# Open a NEW Claude Code session in the worktree directory:
+cd ../myproject-sf-14
+/phiwer:wf-phase4-implement
+# → implementation phases run here, on the feature branch
+
+# Back in the worktree directory
+/phiwer:wf-phase5-6-complete
+# → phase6 offers to remove the worktree and merge/delete the branch
+```
+
+Spec and review phases (1–3) run in the main project directory because they read the roadmap, existing specs, and project config. Implementation phases (4–6) run in the worktree directory so changes land on the feature branch and stay isolated from `main`.
+
+All phases find the shared context automatically — each skill runs `git worktree list` to locate the main root regardless of which directory you're in, then reads `{FEATURE-ID}-context.json` from there.
 
 Worktrees are fully optional — omit `worktreeBase` (or set it to `null`) and the workflow behaves exactly as before.
 
