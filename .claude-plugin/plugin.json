@@ -1,0 +1,16 @@
+{
+  "name": "claude-workflow",
+  "description": "A structured 6-phase feature development workflow (spec → review → consolidate → implement → verify → retrospective)",
+  "version": "1.0.0",
+  "author": {
+    "name": "phiwer",
+    "url": "https://github.com/phiwer"
+  },
+  "homepage": "https://github.com/phiwer/claude-workflow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/phiwer/claude-workflow.git"
+  },
+  "license": "MIT",
+  "keywords": ["workflow", "skills", "feature-development", "spec", "review"]
+}
