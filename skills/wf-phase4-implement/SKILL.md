@@ -57,6 +57,7 @@ Read thoroughly:
 2. **Phase 3 Consolidation**: `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE3_CONSOLIDATION.md`
 3. **CLAUDE.md**: For project patterns and conventions
 4. **Related existing code**: Based on "Files Modified" section of spec
+5. **Interface files** (if `"interfaceFirst": true` in project-config): read the files listed in the consolidation's `interfaceFilesCreated` — these are the agreed contracts to implement against
 
 ### Step 4: Create Implementation Plan
 
@@ -66,6 +67,8 @@ Before writing code, outline:
 2. Files to modify (from spec "Files Modified" section)
 3. Dependencies between changes
 4. Implementation order: typically model/data types → core logic → integration → tests
+
+If `interfaceFirst` is true: interface/abstract files already exist and have been reviewed by the team. Mark them as "Files Modified" (add implementations) rather than "Files Added" — do not redefine the signatures.
 
 ### Step 5: Implement the Feature
 

@@ -174,7 +174,46 @@ Items intentionally not addressed in this phase:
 **Next Phase**: Phase 4 - Implementation
 ```
 
-### Step 7: Output Summary
+### Step 7: Create Application Interface Files (if applicable)
+
+Check `project-config.json` for `"interfaceFirst": true`.
+
+If not set, use AskUserQuestion:
+- header: "Interface-first?"
+- question: "Create application interface files now for team review before implementation? This generates the public contracts (interfaces, abstract classes, DTOs) from the consolidated spec — the team reviews and agrees on these before phase4 implements them."
+- option1: label="Yes — create interfaces", description="Generate interface/contract files now; review with team before implementing in phase4"
+- option2: label="No — go straight to implementation", description="Skip; proceed directly to /wf-phase4-implement"
+
+**If yes** (from config flag or user choice):
+
+1. If the flag was not already set, add `"interfaceFirst": true` to `project-config.json`
+2. From the consolidated spec, identify the public application boundary:
+   - Service interfaces and their methods
+   - Controllers / API entry points
+   - Repository / port interfaces
+   - DTOs, records, value objects that cross layer boundaries
+   - Event / message schemas if applicable
+3. Infer the correct source directory from existing code structure or CLAUDE.md
+4. Create each file with the full package/namespace declaration and contract-level content only:
+   - Method signatures, parameter types, return types, checked exceptions
+   - Javadoc / docstrings describing intent and contract
+   - **No implementation logic** — bodies are empty, `abstract`, or `throw new UnsupportedOperationException()`
+5. List all files created with full paths
+
+Display:
+```
+## Interface Files Created
+
+{list each file with full path}
+
+### Next step
+Review these files with your team. Once agreed, start a new session and
+run `/wf-phase4-implement` to implement against them.
+```
+
+**If no**: proceed to Step 8.
+
+### Step 8: Output Summary
 
 After completing consolidation, display:
 
@@ -183,12 +222,13 @@ After completing consolidation, display:
 3. Full list of deferred items with reasons
 4. Version change summary
 5. Any unresolved questions that may come up during implementation
+6. If interface files were created: list them and note they need team review before phase4
 
-Then proceed to Step 8.
+Then proceed to Step 9.
 
-### Step 8: Write Context and Prompt for Next Step
+### Step 9: Write Context and Prompt for Next Step
 
-#### 8a: Write Context File
+#### 9a: Write Context File
 
 Create/update `.claude/workflow/phase-context.json`:
 
@@ -203,14 +243,21 @@ Create/update `.claude/workflow/phase-context.json`:
     "decisionsMade": ["{list decision titles}"],
     "deferredItems": {count or 0},
     "implementationReady": true,
+    "interfaceFilesCreated": ["{list paths, or empty array}"],
     "integrationPoints": ["{key systems to integrate with}"]
   }
 }
 ```
 
-#### 8b: Phase Complete — Next Steps
+#### 9b: Phase Complete — Next Steps
 
-Read `complexityTier` from `.claude/workflow/phase-context.json` and display:
+If interface files were created in Step 7, display:
+> Phase 3 complete. Interface files created — context saved.
+>
+> **Next**: Review the interface files with your team. Once agreed, start a new
+> session and run `/wf-phase4-implement` — context will auto-load.
+
+Otherwise, read `complexityTier` from `.claude/workflow/phase-context.json` and display:
 
 **Simple or Medium tier** — display:
 > Phase 3 complete. Context saved.
