@@ -206,8 +206,10 @@ Write the updated file. Do not remove any existing entries.
 If `CLAUDE.md` exists and is longer than 100 lines:
 
 1. Read `CLAUDE.md`
-2. For each agent created in Step 3, create `.claude/context/{agent-name}.md` containing
-   only the CLAUDE.md sections most relevant to that agent's domain:
+2. For each agent file in `.claude/agents/` (not just agents created in this run), create
+   or overwrite `.claude/context/{agent-name}.md` with only the CLAUDE.md sections most
+   relevant to that agent's domain. Always regenerate — even for existing agents that were
+   not replaced — so excerpts stay current as CLAUDE.md accumulates conventions over time.
 
    - `backend-dev.md` — API patterns, service layer conventions, async pipelines, DB patterns, Spring patterns
    - `frontend-dev.md` — React/TypeScript conventions, component patterns, test patterns, UI conventions
@@ -221,8 +223,10 @@ If `CLAUDE.md` exists and is longer than 100 lines:
 
    Extract verbatim relevant sections. Keep each excerpt under 200 lines.
 
-3. For each agent file created in Step 3, append this line to its "## Project Context" section:
+3. For each agent file **newly created** in Step 3, append this line to its
+   "## Project Context" section:
    > For compact project-convention reference, read `.claude/context/{name}.md`.
+   Skip this for existing agents — they already have the line.
 
 If `CLAUDE.md` is absent or short (≤100 lines), skip this step — the agent files already
 inline sufficient context.
@@ -253,4 +257,20 @@ Display:
 - /wf-phase5-6-complete Verify + retrospective in one session
 - /wf-phase6-retrospective Document lessons learned
 - /wf-clear-context     Clear workflow context to start fresh
+```
+
+If `CLAUDE.md` was absent or under 100 lines during this run, also display:
+
+```
+⚠️  CLAUDE.md missing or thin — agent context is generic
+
+Agents were created with inferred tech-stack content rather than project-specific
+conventions. To get the most out of the review phases, create a CLAUDE.md with at minimum:
+
+  - Build and test commands
+  - Project description and key architectural decisions
+  - Coding conventions and patterns to enforce
+
+Then re-run /wf-init and select "Re-run full setup" to regenerate agents with
+project-specific context and refresh the .claude/context/ excerpts.
 ```
