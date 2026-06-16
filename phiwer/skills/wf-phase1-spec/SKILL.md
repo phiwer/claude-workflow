@@ -2,7 +2,7 @@
 name: wf-phase1-spec
 description: Phase 1 - Create an initial feature specification from a roadmap item. Generates a structured spec file ready for Phase 2 review.
 argument-hint: [feature-id] (e.g., SF-14)
-allowed-tools: Read, Glob, Grep, Write, WebFetch, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Bash, Write, AskUserQuestion
 model: sonnet
 ---
 
@@ -17,22 +17,17 @@ Any gaps in Haiku's spec get caught by Phase 2 agents anyway.
 
 # Phase 1: Create Feature Specification
 
-Generate a comprehensive initial spec for a roadmap feature.
-
 ## Feature to Specify
 
 $ARGUMENTS
 
-## Execution Rules
+---
 
-> **STRICT SEQUENTIAL EXECUTION REQUIRED.**
-> Do NOT parallelize across steps. Do NOT read any project source files, specs,
-> CLAUDE.md, or codebase until **Step 2** — which only begins after the user
-> has responded in Step 1.5. Steps 0 and 1 read only config and the roadmap.
+## PART 1 — Setup and User Confirmation
 
-## Instructions
+**Complete all of Part 1 before reading any project source files, specs, or code.**
 
-### Step 0: Read Project Config
+### Step 1: Read Project Config
 
 1. Try to read `.claude/workflow/project-config.json`
 2. Extract values (use these defaults if file is absent or field is missing):
@@ -49,43 +44,47 @@ $ARGUMENTS
    Falls back to .claude/workflow/ if git command fails.
    ```
 
-### Step 1: Handle Missing Arguments
+### Step 2: Identify Feature and Ask the User
 
-If no feature ID was provided in arguments:
+1. Read `{roadmapFile}`.
 
-1. Read `{roadmapFile}` to find features marked with ⬜ (not implemented)
-2. Use AskUserQuestion to ask the user which feature to create a spec for:
-   - List up to 4 unimplemented features as options
-   - Include feature ID and brief description in each option
+2. **If no feature ID was provided in arguments:**
+   - Find features marked with ⬜ (not implemented)
+   - Use `AskUserQuestion` to ask which feature to spec:
+     - List up to 4 unimplemented features as options (ID + brief description)
 
-### Step 1.5: Confirm Feature Scope with User
+3. **Once you have a feature ID** — extract its entry from the roadmap:
+   - Feature name
+   - Description
+   - Any listed requirements or acceptance criteria
 
-**STOP. Do not read any codebase files. This step reads only the roadmap.**
-
-1. Read `{roadmapFile}` and extract the entry for the feature — its name, description, and any listed requirements or acceptance criteria
-2. Display a concise summary to the user:
+4. Display a concise summary to the user:
    - Feature ID and name
    - Description (verbatim or lightly condensed)
-   - Key requirements or bullets found in the roadmap
-3. Use `AskUserQuestion` to ask:
-   - **"Does this look right? Anything to add, clarify, or constrain before I write the spec?"**
-   - Provide two options: "Looks good — proceed as-is" and "I have additional context" (free text via Other)
-4. **WAIT for the user to answer before doing anything else.**
-5. Note any additional context the user provides — incorporate it in Step 5.
-6. Only after the user has answered, proceed to Step 2.
+   - Key requirements or bullets from the roadmap
 
-### Step 2: Gather Codebase Context
+5. Use `AskUserQuestion` to ask:
+   **"Does this look right? Anything to add, clarify, or constrain before I write the spec?"**
+   - Option 1: "Looks good — proceed as-is"
+   - Option 2 (via Other): free text for additional context
 
-**This step only runs after the user has confirmed in Step 1.5.**
+6. **Wait for the user's answer. Part 1 is now complete.**
 
-Explore the codebase:
+---
+
+## PART 2 — Codebase Exploration and Spec Generation
+
+**Only begin Part 2 after the user has answered in Step 2 above.**
+**Incorporate any additional context the user provided throughout the steps below.**
+
+### Step 3: Gather Codebase Context
 
 1. Read `CLAUDE.md` to understand existing patterns and implemented features
-3. Check for any reference documentation in the repo (e.g., `docs/`, `references/`, `specs/`)
-4. Review related existing specs in `{specDir}/` for format and patterns
-5. Check existing code for any partial implementations or related systems
+2. Check for any reference documentation in the repo (e.g., `docs/`, `references/`, `specs/`)
+3. Review related existing specs in `{specDir}/` for format and patterns
+4. Check existing code for any partial implementations or related systems
 
-### Step 3: Analyze Dependencies
+### Step 4: Analyze Dependencies
 
 Identify:
 - Which existing systems this feature integrates with
@@ -94,12 +93,12 @@ Identify:
 - Database schema changes (if any)
 - Configuration/constants to add
 
-### Step 4: Create Spec Directory
+### Step 5: Create Spec Directory
 
 Create the directory: `{specDir}/{feature-id-lowercase}/`
 (e.g., `{specDir}/sf14/` for SF-14)
 
-### Step 5: Generate Spec File
+### Step 6: Generate Spec File
 
 Create `{specDir}/{feature-dir}/{FEATURE-ID}_{NAME}_SPEC.md` using this template.
 
@@ -242,7 +241,7 @@ Where:
 **Last Updated**: {date}
 ```
 
-### Step 6: Output Summary
+### Step 7: Output Summary
 
 After creating the spec, display:
 
@@ -253,11 +252,11 @@ After creating the spec, display:
 5. List each open question with context
 6. Show any HTTP endpoints being added
 
-Then proceed to Step 7.
+Then proceed to Step 8.
 
-### Step 7: Write Context and Prompt for Next Step
+### Step 8: Write Context and Prompt for Next Step
 
-#### 7a: Write Context File
+#### 8a: Write Context File
 
 Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 
@@ -279,7 +278,7 @@ Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 }
 ```
 
-#### 7a2: Create Git Worktree (if configured)
+#### 8b: Create Git Worktree (if configured)
 
 If `worktreeBase` is set (non-null) in `project-config.json`:
 
@@ -289,7 +288,7 @@ If `worktreeBase` is set (non-null) in `project-config.json`:
    ```bash
    git worktree add "{worktreeBase}/{project-dir-name}-{feature-id-lowercase}" -b "feature/{feature-id-lowercase}"
    ```
-4. Save `worktreePath` and `branchName` to the context file written in 7a:
+4. Save `worktreePath` and `branchName` to the context file written in 8a:
    - `"worktreePath": "{worktreeBase}/{project-dir-name}-{feature-id-lowercase}"`
    - `"branchName": "feature/{feature-id-lowercase}"`
 5. Display the worktree path to the user:
@@ -299,7 +298,7 @@ If `worktreeBase` is set (non-null) in `project-config.json`:
    Implementation phases will run from this directory.
    ```
 
-#### 7b: Phase Complete — Next Steps
+#### 8c: Phase Complete — Next Steps
 
 Display the recommended next command based on the `complexityTier` saved to `{FEATURE-ID}-context.json`:
 
