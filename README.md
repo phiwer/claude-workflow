@@ -40,7 +40,21 @@ This creates `.claude/agents/` (e.g. `qa-engineer.md`, `backend-dev.md`) and `.c
 
 **`/phiwer:wf-phase1-spec [feature-id] [description]`**
 
-Pass the feature ID and your own description of what it should do — text, constraints, edge cases, anything relevant. Attach images (wireframes, diagrams) to the same message if you have them. The skill treats your description as the primary definition of the feature, cross-references the roadmap, explores the codebase, and produces a structured spec covering:
+Pass the feature ID and your own description of what the feature should do. Include constraints, edge cases, and any relevant context. Attach images (wireframes, diagrams, screenshots) to the same message if you have them. The skill treats your description as the primary definition of the feature, cross-references the roadmap, explores the codebase, and produces a structured spec.
+
+**Example:**
+```
+/phiwer:wf-phase1-spec TRA-1468
+
+Track deleted users and their dependants in delta reports. When a user
+is soft-deleted in the HR system, the delta report should emit a leaver
+event for them and for any active dependants on their policy. The event
+should follow the same structure as existing leaver events (TRA-1417).
+Edge case: dependants with their own active policies should not be closed.
+```
+*(Attach a diagram or screenshot to the same message if helpful.)*
+
+The spec covers:
 - Application interface (public contracts, method signatures, DTOs)
 - Components and internal logic
 - Files to add/modify
