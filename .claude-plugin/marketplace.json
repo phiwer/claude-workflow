@@ -17,8 +17,7 @@
         "source": "git-subdir",
         "url": "https://github.com/phiwer/claude-workflow.git",
         "path": "phiwer",
-        "ref": "main",
-        "sha": "7bb2abb385883490c06fc374ab6b75d0790e62d3"
+        "ref": "main"
       },
       "homepage": "https://github.com/phiwer/claude-workflow"
     }
