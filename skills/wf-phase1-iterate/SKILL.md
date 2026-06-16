@@ -103,6 +103,10 @@ For each agent, provide the full spec content and ask for a **focused quick revi
 - Top 2-3 suggestions
 - Quick verdict: PROCEED / REVISE
 
+Explicitly ask each agent to check:
+- **Implementability**: Can this spec be implemented from what's written? Are there logic gaps or missing detail that would block a developer?
+- **Testability**: Is the Test Strategy section specific enough to actually write the tests listed, or are the requirements too vague to verify?
+
 ### Step 5: Summary (No File Written)
 
 After all agents complete, display the full results:
