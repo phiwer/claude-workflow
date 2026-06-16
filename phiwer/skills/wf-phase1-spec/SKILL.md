@@ -23,58 +23,35 @@ $ARGUMENTS
 
 ---
 
-## PART 1 — Setup and User Confirmation
+## YOUR ONLY JOB RIGHT NOW: Ask the user one question. Then stop.
 
-**Complete all of Part 1 before reading any project source files, specs, or code.**
+Do not explore the codebase. Do not read CLAUDE.md. Do not look at existing specs or code.
+The spec writing happens later, after the user responds. Ignore that you know how to write specs.
 
-### Step 1: Read Project Config
+### Step 1: Read config and roadmap (these two reads only)
 
-1. Try to read `.claude/workflow/project-config.json`
-2. Extract values (use these defaults if file is absent or field is missing):
-   - `specDir` = `docs/specs`
-   - `archiveDir` = `docs/specs/archive`
-   - `roadmapFile` = `ROADMAP.md`
-   - `worktreeBase` = `null` (optional)
-3. Use `{specDir}`, `{archiveDir}`, and `{roadmapFile}` throughout this skill
-4. Find the main worktree root:
-   ```
-   Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
-   Use the result as GIT_MAIN_ROOT. All context files live at:
-     {GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json
-   Falls back to .claude/workflow/ if git command fails.
-   ```
+1. Read `.claude/workflow/project-config.json` — extract `specDir`, `archiveDir`, `roadmapFile`, `worktreeBase` (defaults: `docs/specs`, `docs/specs/archive`, `ROADMAP.md`, `null`).
+2. Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` to get `GIT_MAIN_ROOT`.
+3. Read `{roadmapFile}`.
 
-### Step 2: Identify Feature and Ask the User
+### Step 2: Ask the user
 
-1. Read `{roadmapFile}`.
+- **If no feature ID in arguments:** use `AskUserQuestion` to list up to 4 unimplemented (⬜) features from the roadmap. After the user picks one, continue.
+- **Once you have a feature ID:** extract its name, description, and requirements from the roadmap.
 
-2. **If no feature ID was provided in arguments:**
-   - Find features marked with ⬜ (not implemented)
-   - Use `AskUserQuestion` to ask which feature to spec:
-     - List up to 4 unimplemented features as options (ID + brief description)
+Display a brief summary (ID, name, description, key requirements), then use `AskUserQuestion`:
 
-3. **Once you have a feature ID** — extract its entry from the roadmap:
-   - Feature name
-   - Description
-   - Any listed requirements or acceptance criteria
+> **"Does this look right? Anything to add, clarify, or constrain before I write the spec?"**
+> - "Looks good — proceed as-is"
+> - (Other = free text for additional context)
 
-4. Display a concise summary to the user:
-   - Feature ID and name
-   - Description (verbatim or lightly condensed)
-   - Key requirements or bullets from the roadmap
-
-5. Use `AskUserQuestion` to ask:
-   **"Does this look right? Anything to add, clarify, or constrain before I write the spec?"**
-   - Option 1: "Looks good — proceed as-is"
-   - Option 2 (via Other): free text for additional context
-
-6. **Wait for the user's answer. Part 1 is now complete.**
+**Stop here. Output nothing more. Wait for the user's response.**
 
 ---
 
-## PART 2 — Codebase Exploration and Spec Generation
+## PART 2 — After the user has responded: Codebase Exploration and Spec Generation
 
-**Only begin Part 2 after the user has answered in Step 2 above.**
+**Do not begin this section until the user's answer is in the conversation above.**
 **Incorporate any additional context the user provided throughout the steps below.**
 
 ### Step 3: Gather Codebase Context
