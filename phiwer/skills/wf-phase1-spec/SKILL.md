@@ -51,6 +51,21 @@ If no feature ID was provided in arguments:
    - List up to 4 unimplemented features as options
    - Include feature ID and brief description in each option
 
+### Step 1.5: Confirm Feature Scope with User
+
+Once you have a feature ID:
+
+1. Read `{roadmapFile}` and extract the entry for the feature — its name, description, and any listed requirements or acceptance criteria
+2. Display a concise summary to the user:
+   - Feature ID and name
+   - Description (verbatim or lightly condensed)
+   - Key requirements or bullets found in the roadmap
+3. Use `AskUserQuestion` to ask:
+   - **"Does this look right? Anything to add, clarify, or constrain before I write the spec?"**
+   - Provide two options: "Looks good — proceed as-is" and "I have additional context" (free text via Other)
+4. If the user provides additional context, note it — you will incorporate it during spec generation in Step 5
+5. Then continue to Step 2
+
 ### Step 2: Gather Context
 
 Once you have a feature ID:
