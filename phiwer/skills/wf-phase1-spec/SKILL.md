@@ -23,6 +23,13 @@ Generate a comprehensive initial spec for a roadmap feature.
 
 $ARGUMENTS
 
+## Execution Rules
+
+> **STRICT SEQUENTIAL EXECUTION REQUIRED.**
+> Do NOT parallelize across steps. Do NOT read any project source files, specs,
+> CLAUDE.md, or codebase until **Step 2** — which only begins after the user
+> has responded in Step 1.5. Steps 0 and 1 read only config and the roadmap.
+
 ## Instructions
 
 ### Step 0: Read Project Config
@@ -53,7 +60,7 @@ If no feature ID was provided in arguments:
 
 ### Step 1.5: Confirm Feature Scope with User
 
-**Do not touch the codebase yet.** This step reads only the roadmap.
+**STOP. Do not read any codebase files. This step reads only the roadmap.**
 
 1. Read `{roadmapFile}` and extract the entry for the feature — its name, description, and any listed requirements or acceptance criteria
 2. Display a concise summary to the user:
@@ -63,12 +70,15 @@ If no feature ID was provided in arguments:
 3. Use `AskUserQuestion` to ask:
    - **"Does this look right? Anything to add, clarify, or constrain before I write the spec?"**
    - Provide two options: "Looks good — proceed as-is" and "I have additional context" (free text via Other)
-4. If the user provides additional context, note it — you will incorporate it during spec generation in Step 5
-5. **Only after the user has responded**, continue to Step 2
+4. **WAIT for the user to answer before doing anything else.**
+5. Note any additional context the user provides — incorporate it in Step 5.
+6. Only after the user has answered, proceed to Step 2.
 
-### Step 2: Gather Context
+### Step 2: Gather Codebase Context
 
-Now that the user has confirmed the feature scope, explore the codebase:
+**This step only runs after the user has confirmed in Step 1.5.**
+
+Explore the codebase:
 
 1. Read `CLAUDE.md` to understand existing patterns and implemented features
 3. Check for any reference documentation in the repo (e.g., `docs/`, `references/`, `specs/`)
