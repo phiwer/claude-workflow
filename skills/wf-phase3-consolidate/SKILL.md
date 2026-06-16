@@ -83,12 +83,17 @@ Document each decision with:
 
 ### Step 5: Update the Main Spec
 
-Edit the main spec file to:
+Before editing, scan the spec's "Open Questions" section for any remaining `- [ ]` unchecked items. For each:
+- If it was addressed in Step 4, mark it `- [x]` and note the decision inline
+- If it was not addressed, decide now or explicitly move it to the Deferred Items section of the consolidation document with a reason — do not leave it unchecked and do not set status to READY FOR IMPLEMENTATION with unresolved questions
+
+Then edit the main spec file to:
 1. Address all critical issues
 2. Incorporate recommended changes (where appropriate)
-3. Update the Status to "READY FOR IMPLEMENTATION"
-4. Update the version number (e.g., v1.0 → v1.1)
-5. Update the "Last Updated" date
+3. Mark all resolved Open Questions as `- [x]`
+4. Update the Status to "READY FOR IMPLEMENTATION"
+5. Update the version number (e.g., v1.0 → v1.1)
+6. Update the "Last Updated" date
 
 ### Step 6: Create Consolidation Document
 

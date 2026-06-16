@@ -3,7 +3,7 @@ name: wf-phase6-retrospective
 description: Run Phase 6 retrospective - document lessons learned, what went well, what could improve. Produces PHASE6_RETROSPECTIVE.md and updates project docs.
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion
-model: sonnet
+model: opus
 ---
 
 # Phase 6: Retrospective
@@ -56,6 +56,7 @@ Before writing anything, systematically extract findings from each prior documen
 - What decisions were made that represent new project conventions?
 - Were any approaches considered but rejected? Should the reason be documented to prevent re-litigating later?
 - What open questions were resolved in a non-obvious way?
+- For each item in the "Deferred Items" section: did the implementation reveal it is unnecessary, or is it still valid future work? If still valid, draft a roadmap entry for it.
 
 **From Phase 5 Verification** (if it exists):
 - What deviations from spec occurred, and why did they happen?

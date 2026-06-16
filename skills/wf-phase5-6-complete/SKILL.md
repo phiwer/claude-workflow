@@ -101,6 +101,7 @@ Before writing anything, systematically extract findings from the documents read
 - What decisions were made that represent new project conventions?
 - Were any approaches considered but rejected? Should the reason be documented to prevent re-litigating later?
 - What open questions were resolved in a non-obvious way?
+- For each item in the "Deferred Items" section: did the implementation reveal it is unnecessary, or is it still valid future work? If still valid, draft a roadmap entry for it.
 
 **From Phase 5 Verification** (just completed above):
 - What deviations from spec occurred, and why did they happen?

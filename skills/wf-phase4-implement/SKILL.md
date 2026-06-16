@@ -78,6 +78,8 @@ Follow the spec precisely:
 5. **Create HTTP endpoint** if specified
 6. **Write tests** as specified in Test Strategy
 
+**Deviations**: If at any point the implementation diverges from the spec, document it immediately — what the spec said, what you're doing instead, and why. Add it to the Step 8 summary as you go; don't try to reconstruct it at the end.
+
 ### Step 6: Run Tests
 
 Run the project's test suite (see CLAUDE.md or project docs for specific commands):
