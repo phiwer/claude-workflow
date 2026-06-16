@@ -4,12 +4,21 @@ A structured 6-phase feature development workflow for Claude Code. Each phase ru
 
 ## Install
 
-As a plugin (namespaced commands):
 ```
-/plugin install github:phiwer/claude-workflow
+/plugin marketplace add phiwer/claude-workflow
+/plugin install phiwer@phiwer
+/reload-plugins
 ```
 
-Or copy the `skills/` directory into `~/.claude/skills/` for bare-name commands (`/wf-init`, `/wf-phase1-spec`, etc.).
+Skills are namespaced as `/phiwer:wf-init`, `/phiwer:wf-phase1-spec`, etc.
+
+**Updating** after the repo changes:
+
+```
+/plugin marketplace update phiwer
+/plugin update phiwer
+/reload-plugins
+```
 
 ---
 
