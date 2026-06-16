@@ -1,5 +1,5 @@
 {
-  "name": "claude-workflow",
+  "name": "phiwer",
   "description": "A structured 6-phase feature development workflow (spec → review → consolidate → implement → verify → retrospective)",
   "version": "1.0.0",
   "author": {
