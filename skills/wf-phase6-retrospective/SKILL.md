@@ -187,25 +187,43 @@ Edit the relevant project docs based on what was identified in Step 5:
 3. **Domain reference docs** (e.g., GAME_MECHANICS.md if applicable): Add new formulas/constants
 4. **README.md** (if it tracks implemented features): Update feature list
 
-### Step 8: Archive Feature Spec
+### Step 8: Optimize CLAUDE.md
+
+After adding new entries, read the full CLAUDE.md and do a consolidation pass:
+
+1. **Duplicates**: Find entries that say the same thing twice or near-identically — merge into one, keeping the more specific or complete phrasing
+2. **Contradictions**: Find entries that conflict — keep the newer or more specific one, remove the superseded one, note what was removed
+3. **Bloat**: Find sections that have grown unwieldy — condense without losing meaning
+
+Make surgical edits only. Do not restructure or rewrite sections that are fine. Report every change made (merged, removed, condensed) so the user can verify nothing important was lost.
+
+### Step 9: Refresh Agent Context Excerpts
+
+After CLAUDE.md is finalized, regenerate `.claude/context/{agent-name}.md` for every agent file in `.claude/agents/` — extract only the sections relevant to each agent's domain from the updated CLAUDE.md. This keeps review agents current without requiring a manual `/wf-init` re-run.
+
+If `.claude/agents/` is empty or `.claude/context/` does not exist, skip silently.
+
+### Step 11: Archive Feature Spec
 
 Move the main spec from `{specDir}/{feature-dir}/` to `{archiveDir}/{feature-dir}/` if
 the spec dir and archive dir are different. Update spec status to "IMPLEMENTED".
 Remove `{specDir}/{feature-dir}/` directory if now empty.
 
-### Step 9: Clear Workflow Context
+### Step 12: Clear Workflow Context
 
 Delete `.claude/workflow/phase-context.json` — feature workflow is complete.
 
-### Step 10: Output Summary
+### Step 13: Output Summary
 
 Display:
 1. Confirm documents were created/updated
 2. Summarize key learnings
 3. List project documentation updates made
-4. 🎉 Feature workflow complete!
+4. List CLAUDE.md optimizations made (merges, removals, condensations)
+5. Confirm agent context excerpts refreshed
+6. 🎉 Feature workflow complete!
 
-### Step 11: Feature Complete
+### Step 14: Feature Complete
 
 Display:
 > Feature workflow complete! 🎉

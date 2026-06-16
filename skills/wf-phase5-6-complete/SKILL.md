@@ -291,18 +291,38 @@ Delete `.claude/workflow/phase-context.json` — feature workflow is complete.
 
 ---
 
-## Step 11: Output Summary
+## Step 11: Optimize CLAUDE.md
+
+After adding new entries, read the full CLAUDE.md and do a consolidation pass:
+
+1. **Duplicates**: Find entries that say the same thing twice or near-identically — merge into one, keeping the more specific or complete phrasing
+2. **Contradictions**: Find entries that conflict — keep the newer or more specific one, remove the superseded one, note what was removed
+3. **Bloat**: Find sections that have grown unwieldy — condense without losing meaning
+
+Make surgical edits only. Do not restructure or rewrite sections that are fine. Report every change made (merged, removed, condensed) so the user can verify nothing important was lost.
+
+## Step 12: Refresh Agent Context Excerpts
+
+After CLAUDE.md is finalized, regenerate `.claude/context/{agent-name}.md` for every agent file in `.claude/agents/` — extract only the sections relevant to each agent's domain from the updated CLAUDE.md. This keeps review agents current without requiring a manual `/wf-init` re-run.
+
+If `.claude/agents/` is empty or `.claude/context/` does not exist, skip silently.
+
+---
+
+## Step 13: Output Summary
 
 Display:
 1. ✅ Verification passed with test summary
 2. ✅ Retrospective complete with key learnings
 3. ✅ Project docs updated
-4. ✅ Spec archived
-5. 🎉 Feature workflow complete!
+4. ✅ CLAUDE.md optimized (list merges, removals, condensations)
+5. ✅ Agent context excerpts refreshed
+6. ✅ Spec archived
+7. 🎉 Feature workflow complete!
 
 ---
 
-## Step 12: Feature Complete
+## Step 14: Feature Complete
 
 Display:
 > Feature workflow complete! 🎉

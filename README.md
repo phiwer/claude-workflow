@@ -21,7 +21,7 @@ Run once per project to detect the tech stack, create project-specific review ag
 /phiwer:wf-init
 ```
 
-This creates `.claude/agents/` (e.g. `qa-engineer.md`, `backend-dev.md`) and `.claude/context/` (CLAUDE.md excerpts per agent). Re-run whenever CLAUDE.md changes significantly to refresh agent context.
+This creates `.claude/agents/` (e.g. `qa-engineer.md`, `backend-dev.md`) and `.claude/context/` (CLAUDE.md excerpts per agent). Agent context is automatically refreshed at the end of every phase6 retrospective — no manual re-run needed.
 
 ---
 
