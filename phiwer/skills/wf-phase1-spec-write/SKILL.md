@@ -16,22 +16,21 @@ Model Selection Guide:
 
 ## Step 1: Load context
 
-Read the project config and context file:
-
 1. Read `.claude/workflow/project-config.json` (for `specDir`, `archiveDir`, `roadmapFile`, `worktreeBase`)
 2. Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` → `GIT_MAIN_ROOT`
 3. Read `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`
 
-The context file has:
+The context file contains:
 - `featureId` — the feature to spec
-- `roadmapSummary` — the description and requirements from the roadmap
-- `userClarification` — any additional context the user provided
+- `userDescription` — the user's own description of the feature (primary source of truth)
 
-If the context file is missing or `lastPhase` is not `wf-phase1-spec`, tell the user to run `/phiwer:wf-phase1-spec` first.
+If the context file is missing or `lastPhase` is not `wf-phase1-spec`, stop and tell the user to run `/phiwer:wf-phase1-spec` first.
+
+Also read `{roadmapFile}` to find any additional requirements listed there, but treat `userDescription` as the primary definition of the feature.
 
 ## Step 2: Gather codebase context
 
-Using `featureId`, `roadmapSummary`, and `userClarification` as your guide:
+Using `featureId` and `userDescription` as your guide:
 
 1. Read `CLAUDE.md` to understand existing patterns and implemented features
 2. Check for reference documentation in the repo (e.g., `docs/`, `references/`)
