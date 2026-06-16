@@ -102,6 +102,29 @@ Archives the spec and clears workflow context.
 
 ---
 
+## Parallel development with git worktrees
+
+Each feature gets its own git branch and worktree, so you can work on multiple features simultaneously without branches interfering.
+
+**Enable during setup:** `wf-init` asks whether to enable worktrees and what base directory to use (e.g. `..` creates worktrees as siblings to the project).
+
+**Enable on an existing project:** add `worktreeBase` to `.claude/workflow/project-config.json`:
+
+```json
+{
+  "specDir": "docs/specs",
+  "archiveDir": "docs/specs/archive",
+  "roadmapFile": "ROADMAP.md",
+  "worktreeBase": ".."
+}
+```
+
+**How it works:** when `worktreeBase` is set, `wf-phase1-spec` automatically creates a worktree and branch (`feature/{feature-id}`) after generating the spec. Each feature has its own context file (`{FEATURE-ID}-context.json`), so phases for SF-14 and SF-15 never overwrite each other. For implementation, open a Claude Code session in the worktree directory — all phases find the shared context automatically via `git worktree list`. Phase6 offers to remove the worktree and branch when the feature is complete.
+
+Worktrees are fully optional — omit `worktreeBase` (or set it to `null`) and the workflow behaves exactly as before.
+
+---
+
 ## Typical flows
 
 **Complex feature (full workflow):**
