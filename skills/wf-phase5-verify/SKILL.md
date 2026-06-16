@@ -3,7 +3,7 @@ name: wf-phase5-verify
 description: Run Phase 5 verification after implementation - verify spec was implemented correctly, check tests pass, document any deviations. Produces PHASE5_VERIFICATION.md.
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion
-model: sonnet
+model: opus
 ---
 
 # Phase 5: Implementation Verification

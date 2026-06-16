@@ -3,7 +3,7 @@ name: wf-phase5-6-complete
 description: Combined Phase 5+6 - verify implementation and write retrospective in one session. Saves ~4-6K tokens by avoiding context reload.
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, AskUserQuestion
-model: sonnet
+model: opus
 ---
 
 # Phase 5+6: Verification & Retrospective (Combined)
@@ -43,8 +43,9 @@ If no spec path was provided:
 
 Read:
 1. The main spec file
-2. The Phase 3 consolidation document (if exists)
-3. CLAUDE.md for implementation context
+2. The Phase 2 review document (if exists)
+3. The Phase 3 consolidation document (if exists)
+4. CLAUDE.md for implementation context
 
 ### Step 3: Build and Run Tests
 
@@ -87,27 +88,60 @@ Check each item from the spec:
 
 ## PART B: Retrospective (Phase 6)
 
-### Step 6: Analyze Development Process
+### Step 6: Extract Actionable Insights
+
+Before writing anything, systematically extract findings from the documents read in Step 2 and the verification just completed. Answer the specific questions below, then produce a list of **CLAUDE.md candidates**.
+
+**From Phase 2 Review** (if it exists):
+- What concerns did reviewers raise that revealed a gap in project knowledge?
+- Were patterns discussed that are not in CLAUDE.md already?
+- Did any reviewer flag a pitfall specific to this project's architecture or conventions?
+
+**From Phase 3 Consolidation** (if it exists):
+- What decisions were made that represent new project conventions?
+- Were any approaches considered but rejected? Should the reason be documented to prevent re-litigating later?
+- What open questions were resolved in a non-obvious way?
+
+**From Phase 5 Verification** (just completed above):
+- What deviations from spec occurred, and why did they happen?
+- Were there implementation surprises that would have been avoided with better project context?
+- What test patterns, infrastructure, or edge-case handling was discovered or created?
+
+**Synthesis — CLAUDE.md candidates**:
+For each finding above, decide:
+1. Is this **project-general** (useful for any future feature) or **feature-specific** (not reusable)?
+2. Does CLAUDE.md already cover this? (Check the version read in Step 2.)
+3. If general and not already covered: draft the specific text to add, with the target section.
+
+Produce a numbered list of candidates:
+```
+[CANDIDATE 1] Section: "Testing" — "When adding X always include Y because Z." (Source: Phase 5 deviation)
+[CANDIDATE 2] Section: "Architecture" — "Prefer the A pattern over B because reviewers flagged B causes C." (Source: Phase 2 review)
+```
+
+Discard anything that is only true for this specific feature. Keep only what a future Claude instance working on an unrelated feature would benefit from knowing.
+
+### Step 7: Analyze Development Process
 
 Evaluate:
 
 **What Went Well**: spec clarity, review effectiveness, implementation accuracy, test quality
 
-**What Could Be Improved**: gaps in spec, missed edge cases, process inefficiencies
+**What Could Be Improved**: gaps in spec, missed edge cases, process inefficiencies — trace each back to a root cause
 
 **Key Learnings**: patterns discovered, best practices, pitfalls to avoid
 
-### Step 7: Identify Project Documentation Updates
+### Step 8: Identify Project Documentation Updates
 
-Determine what should be updated in project docs:
-- Main project docs (CLAUDE.md, README, etc.)
+Using the CLAUDE.md candidates from Step 6, determine what to update:
+- **CLAUDE.md**: apply candidates that passed the project-general test — use the drafted text from Step 6 directly
 - Roadmap/issue tracker (feature completion)
 - Architecture docs (if new patterns were introduced)
 - API docs (if new endpoints were added)
 
 ---
 
-## Step 8: Create Combined Documentation
+## Step 9: Create Combined Documentation
 
 Create TWO documents in `{archiveDir}/{feature-dir}/`:
 
@@ -234,29 +268,29 @@ Create TWO documents in `{archiveDir}/{feature-dir}/`:
 
 ---
 
-## Step 9: Update Project Files
+## Step 10: Update Project Files
 
-### 9a: Update main project documentation
-- Update feature status in CLAUDE.md (or equivalent)
+### 10a: Update main project documentation
+- Apply CLAUDE.md candidates identified in Step 6
 - Update roadmap/project tracker to mark feature complete
 - Update architecture docs if new patterns were introduced
 
-### 9b: Archive Spec
+### 10b: Archive Spec
 
 Move the main spec from `{specDir}/{feature-dir}/` to `{archiveDir}/{feature-dir}/`
 (if the archive dir differs from spec dir). Update spec status to "IMPLEMENTED".
 
-### 9c: Update ROADMAP.md (if it exists)
+### 10c: Update ROADMAP.md (if it exists)
 
 Mark the feature as complete in all relevant sections.
 
-### 9d: Clear Workflow Context
+### 10d: Clear Workflow Context
 
 Delete `.claude/workflow/phase-context.json` — feature workflow is complete.
 
 ---
 
-## Step 10: Output Summary
+## Step 11: Output Summary
 
 Display:
 1. ✅ Verification passed with test summary
@@ -267,7 +301,7 @@ Display:
 
 ---
 
-## Step 11: Feature Complete
+## Step 12: Feature Complete
 
 Display:
 > Feature workflow complete! 🎉

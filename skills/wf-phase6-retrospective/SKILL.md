@@ -43,26 +43,59 @@ Read:
 4. Phase 5 verification document
 5. CLAUDE.md for context
 
-### Step 3: Analyze the Development Process
+### Step 3: Extract Actionable Insights
 
-Evaluate:
+Before writing anything, systematically extract findings from each prior document. For each, answer the specific questions below, then produce a list of **CLAUDE.md candidates** — concrete additions worth carrying forward.
+
+**From Phase 2 Review** (if it exists):
+- What concerns did reviewers raise that revealed a gap in project knowledge?
+- Were patterns discussed that are not in CLAUDE.md already?
+- Did any reviewer flag a pitfall specific to this project's architecture or conventions?
+
+**From Phase 3 Consolidation** (if it exists):
+- What decisions were made that represent new project conventions?
+- Were any approaches considered but rejected? Should the reason be documented to prevent re-litigating later?
+- What open questions were resolved in a non-obvious way?
+
+**From Phase 5 Verification** (if it exists):
+- What deviations from spec occurred, and why did they happen?
+- Were there implementation surprises that would have been avoided with better project context?
+- What test patterns, infrastructure, or edge-case handling was discovered or created?
+
+**Synthesis — CLAUDE.md candidates**:
+For each finding above, decide:
+1. Is this **project-general** (useful for any future feature) or **feature-specific** (not reusable)?
+2. Does CLAUDE.md already cover this? (Check the version read in Step 2.)
+3. If general and not already covered: draft the specific text to add, with the target section.
+
+Produce a numbered list of candidates:
+```
+[CANDIDATE 1] Section: "Testing" — "When adding X always include Y because Z." (Source: Phase 5 deviation)
+[CANDIDATE 2] Section: "Architecture" — "Prefer the A pattern over B because reviewers flagged B causes C." (Source: Phase 2 review)
+```
+
+Discard anything that is only true for this specific feature. Keep only what a future Claude instance working on an unrelated feature would benefit from knowing.
+
+### Step 4: Analyze the Development Process
+
+Using the candidates from Step 3 as grounding, evaluate:
 
 **What Went Well**: spec clarity, review effectiveness, implementation accuracy, test quality
 
-**What Could Be Improved**: gaps in spec, missed edge cases, process inefficiencies
+**What Could Be Improved**: gaps in spec, missed edge cases, process inefficiencies — trace each back to a root cause
 
 **Key Learnings**: patterns discovered, best practices, pitfalls to avoid
 
-### Step 4: Identify Project Documentation Updates
+### Step 5: Identify Project Documentation Updates
 
-Determine what should be updated:
-- CLAUDE.md: new patterns, conventions, pitfalls discovered
-- Roadmap: feature completion status
-- Architecture docs: new architectural decisions made
-- API docs: new endpoints added
-- GAME_MECHANICS.md or equivalent domain reference (if applicable to the project)
+Using the CLAUDE.md candidates from Step 3, determine what to update:
+- **CLAUDE.md**: apply candidates that passed the project-general test — use the drafted text from Step 3 directly
+- **Roadmap**: feature completion status
+- **Architecture docs**: new architectural decisions made
+- **API docs**: new endpoints added
+- **Domain reference docs** (e.g., GAME_MECHANICS.md): new formulas, constants, or rules discovered
 
-### Step 5: Create Retrospective Document
+### Step 6: Create Retrospective Document
 
 Create `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE6_RETROSPECTIVE.md`:
 
@@ -144,26 +177,26 @@ Create `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE6_RETROSPECTIVE.md`:
 **Feature Status**: ✅ COMPLETE
 ```
 
-### Step 6: Update Project Documentation
+### Step 7: Update Project Documentation
 
-Edit the relevant project docs based on what was identified in Step 4:
+Edit the relevant project docs based on what was identified in Step 5:
 
 1. **CLAUDE.md**: Add new conventions, patterns, or pitfalls discovered
 2. **{roadmapFile}**: Mark feature as complete in all relevant sections
 3. **Domain reference docs** (e.g., GAME_MECHANICS.md if applicable): Add new formulas/constants
 4. **README.md** (if it tracks implemented features): Update feature list
 
-### Step 7: Archive Feature Spec
+### Step 8: Archive Feature Spec
 
 Move the main spec from `{specDir}/{feature-dir}/` to `{archiveDir}/{feature-dir}/` if
 the spec dir and archive dir are different. Update spec status to "IMPLEMENTED".
 Remove `{specDir}/{feature-dir}/` directory if now empty.
 
-### Step 8: Clear Workflow Context
+### Step 9: Clear Workflow Context
 
 Delete `.claude/workflow/phase-context.json` — feature workflow is complete.
 
-### Step 9: Output Summary
+### Step 10: Output Summary
 
 Display:
 1. Confirm documents were created/updated
@@ -171,7 +204,7 @@ Display:
 3. List project documentation updates made
 4. 🎉 Feature workflow complete!
 
-### Step 10: Feature Complete
+### Step 11: Feature Complete
 
 Display:
 > Feature workflow complete! 🎉
