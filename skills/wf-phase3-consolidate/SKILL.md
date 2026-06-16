@@ -187,7 +187,9 @@ If not set, use AskUserQuestion:
 **If yes** (from config flag or user choice):
 
 1. If the flag was not already set, add `"interfaceFirst": true` to `project-config.json`
-2. From the consolidated spec, identify the public application boundary:
+2. Read the "Application Interface" section of the consolidated spec as the primary
+   source of truth. If that section is absent, infer the boundary from Components
+   and Files sections. Identify:
    - Service interfaces and their methods
    - Controllers / API entry points
    - Repository / port interfaces

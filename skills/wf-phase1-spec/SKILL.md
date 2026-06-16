@@ -101,6 +101,27 @@ Create `{specDir}/{feature-dir}/{FEATURE-ID}_{NAME}_SPEC.md` using this template
 
 ---
 
+## Application Interface (if applicable)
+
+The public contracts this feature exposes to the rest of the system. Define these
+before components — the interface is the contract; components are the internals.
+
+### {InterfaceName}
+
+**Type**: {Interface / Abstract Class / Protocol / Service Contract}
+
+| Method | Parameters | Returns | Description |
+|--------|------------|---------|-------------|
+| `methodName` | `param: Type` | `ReturnType` | What it does |
+
+### {DTOName / Record / Value Object} (if crossing layer boundaries)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `fieldName` | `Type` | What it represents |
+
+---
+
 ## Components
 
 ### 1. {Component Name}
