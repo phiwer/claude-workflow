@@ -38,15 +38,9 @@ This creates `.claude/agents/` (e.g. `qa-engineer.md`, `backend-dev.md`) and `.c
 
 ### Phase 1 — Specification
 
-Phase 1 is split into two commands to keep the scoping conversation separate from codebase exploration.
+**`/phiwer:wf-phase1-spec [feature-id] [description]`**
 
-**`/phiwer:wf-phase1-spec [feature-id]`**
-
-Reads the roadmap entry for the feature, shows you a summary, and asks one clarifying question before touching any code. Saves your answer to the context file.
-
-**`/phiwer:wf-phase1-spec-write`**
-
-Run after answering the scoping question. Explores the codebase and produces a structured spec covering:
+Pass the feature ID and your own description of what it should do — text, constraints, edge cases, anything relevant. Attach images (wireframes, diagrams) to the same message if you have them. The skill treats your description as the primary definition of the feature, cross-references the roadmap, explores the codebase, and produces a structured spec covering:
 - Application interface (public contracts, method signatures, DTOs)
 - Components and internal logic
 - Files to add/modify
@@ -134,14 +128,14 @@ Each feature gets its own git branch and worktree, so you can work on multiple f
 }
 ```
 
-**How it works:** when `worktreeBase` is set, `wf-phase1-spec-write` automatically creates a worktree and branch (`feature/{feature-id}`) after generating the spec. Each feature has its own context file (`{FEATURE-ID}-context.json`), so phases for SF-14 and SF-15 never overwrite each other.
+**How it works:** when `worktreeBase` is set, `wf-phase1-spec` automatically creates a worktree and branch (`feature/{feature-id}`) after generating the spec. Each feature has its own context file (`{FEATURE-ID}-context.json`), so phases for SF-14 and SF-15 never overwrite each other.
 
 **Typical worktree flow:**
 
 ```
 # In your main project directory
-/phiwer:wf-phase1-spec SF-14       # scope question
-/phiwer:wf-phase1-spec-write       # → spec written, worktree created at ../myproject-sf-14 on branch feature/sf-14
+/phiwer:wf-phase1-spec SF-14 [description]
+# → spec written, worktree created at ../myproject-sf-14 on branch feature/sf-14
 
 /phiwer:wf-phase2-review
 /phiwer:wf-phase3-consolidate
@@ -170,8 +164,7 @@ Worktrees are fully optional — omit `worktreeBase` (or set it to `null`) and t
 **Complex feature (full workflow):**
 ```
 /phiwer:wf-init                    # once per project
-/phiwer:wf-phase1-spec             # scope the feature, answer clarifying question
-/phiwer:wf-phase1-spec-write       # explore codebase + write spec
+/phiwer:wf-phase1-spec TRA-1 [description + attach images]
 /phiwer:wf-phase1-iterate          # quick pre-review (catch issues early)
 /phiwer:wf-phase2-review           # formal agent review
 /phiwer:wf-phase3-consolidate      # decisions + optional interface files
@@ -181,8 +174,7 @@ Worktrees are fully optional — omit `worktreeBase` (or set it to `null`) and t
 
 **Medium feature:**
 ```
-/phiwer:wf-phase1-spec
-/phiwer:wf-phase1-spec-write
+/phiwer:wf-phase1-spec TRA-1 [description]
 /phiwer:wf-phase2-review
 /phiwer:wf-phase3-consolidate
 /phiwer:wf-phase4-implement-sonnet
@@ -191,20 +183,18 @@ Worktrees are fully optional — omit `worktreeBase` (or set it to `null`) and t
 
 **Simple feature:**
 ```
-/phiwer:wf-phase1-spec
-/phiwer:wf-phase1-spec-write
+/phiwer:wf-phase1-spec TRA-1 [description]
 /phiwer:wf-phase4-implement-sonnet
 /phiwer:wf-phase5-verify
 ```
 
 **Interface-first (review contracts before implementation):**
 ```
-/phiwer:wf-phase1-spec             # scope the feature
-/phiwer:wf-phase1-spec-write       # write spec (include Application Interface section)
-/phiwer:wf-phase2-review           # review interface design with agents
-/phiwer:wf-phase3-consolidate      # creates actual interface files for team review
+/phiwer:wf-phase1-spec TRA-1 [description]   # include Application Interface section
+/phiwer:wf-phase2-review                      # review interface design with agents
+/phiwer:wf-phase3-consolidate                 # creates actual interface files for team review
 # → review interface files with team / open a PR
-/phiwer:wf-phase4-implement        # implement against agreed interfaces
+/phiwer:wf-phase4-implement                   # implement against agreed interfaces
 /phiwer:wf-phase5-6-complete
 ```
 
