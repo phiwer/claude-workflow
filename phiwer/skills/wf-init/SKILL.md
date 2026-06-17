@@ -130,7 +130,12 @@ Examples for backend-dev in a Spring Boot project:
 ## Key Patterns to Enforce
 
 {List 3-5 project-specific patterns from CLAUDE.md that this agent should watch for,
-or generic best practices for the stack if CLAUDE.md is absent.}
+or generic best practices for the stack if CLAUDE.md is absent.
+
+Express each as a **concrete smell test the agent must actively flag** — a detectable
+anti-pattern phrased so it can be spotted and called out (e.g. "X that does A then B"),
+not an aspirational statement the reviewer can rationalize around. A principle the reviewer
+can talk itself past is not a gate.}
 
 ## Review Process
 
