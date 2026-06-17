@@ -101,6 +101,8 @@ Produces `PHASE3_CONSOLIDATION.md` with each decision, its rationale, and spec c
 
 Implements the feature against the finalized spec and Phase 3 decisions. If `interfaceFirst` is set, implements against the already-agreed interface files rather than redefining them. Deviations from the spec are documented immediately as they happen, not reconstructed after the fact.
 
+Produces a lightweight `PHASE4_IMPLEMENTATION.md` (files changed, test counts, deviations — for quick visual inspection) and updates the workflow context with `lastPhase`. This gives Phase 5 a durable record and a clean deviation handoff even if the run was interrupted or you took over manually mid-phase — Phase 4 is no longer the one phase that leaves no on-disk trace.
+
 ---
 
 ### Phase 5 — Verification
