@@ -232,4 +232,15 @@ Every phase records its token usage — main session **plus any subagents it spa
 
 ---
 
+## Session cost & hygiene
+
+Running each phase in its own session already keeps context tight — that's the main reason the workflow insists on a new session per phase. Two habits handle the rest, because **cache-read on a large accumulated context is the dominant cost driver** (far more than generation):
+
+- **`/compact` during a long phase.** A heavy Phase 4 implementation can grow past ~150k context and get expensive even when cached — every turn re-reads the whole thing. Compact mid-task to trim it.
+- **`/clear` between unrelated ad-hoc tasks.** The per-phase discipline doesn't cover long free-form sessions that drift across many tasks; clear when you switch to something unrelated so you're not re-reading the previous task's transcript.
+
+Run `/usage` to see this directly — if ">150k context" or "subagent-heavy sessions" dominate your spend, these two habits are the fix.
+
+---
+
 **`/phiwer:wf-clear-context`** — clears saved workflow context to start fresh on a new feature.
