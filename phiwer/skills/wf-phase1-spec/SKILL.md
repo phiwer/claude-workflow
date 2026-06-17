@@ -265,6 +265,15 @@ Write `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 }
 ```
 
+#### Record token usage
+
+Record this phase's token usage into the context (Phase 1 has no report doc, so no `--artifact`; it surfaces in the Phase 6 grand total):
+
+```bash
+TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+[ -n "$TU" ] && python3 "$TU" --phase wf-phase1-spec --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" || echo "token-usage: script not found, skipping (best-effort)"
+```
+
 ### 9b: Create git worktree (if configured)
 
 If `worktreeBase` is non-null:

@@ -212,6 +212,22 @@ After CLAUDE.md is finalized, regenerate `.claude/context/{agent-name}.md` for e
 
 If `.claude/agents/` is empty or `.claude/context/` does not exist, skip silently.
 
+### Step 10: Record token usage and totals
+
+Run this **before** Step 12 clears the context file. First record this phase's own usage, then write the all-phases grand total into the retrospective document:
+
+```bash
+TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+CTX="{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json"
+DOC="{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE6_RETROSPECTIVE.md"
+if [ -n "$TU" ]; then
+  python3 "$TU" --phase wf-phase6-retrospective --context "$CTX" --artifact "$DOC"
+  python3 "$TU" --mode total --context "$CTX" --artifact "$DOC"
+else
+  echo "token-usage: script not found, skipping (best-effort)"
+fi
+```
+
 ### Step 11: Archive Feature Spec
 
 Move the main spec from `{specDir}/{feature-dir}/` to `{archiveDir}/{feature-dir}/` if

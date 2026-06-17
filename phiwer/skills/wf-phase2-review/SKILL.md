@@ -243,6 +243,18 @@ Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 }
 ```
 
+#### 10c: Record token usage
+
+Append this phase's token usage to the review document and context. The selected review subagents are the bulk of Phase 2's cost and are captured automatically:
+
+```bash
+TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+[ -n "$TU" ] && python3 "$TU" --phase wf-phase2-review \
+  --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
+  --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE2_REVIEW.md" \
+  || echo "token-usage: script not found, skipping (best-effort)"
+```
+
 #### 10b: Phase Complete — Next Steps
 
 Display:

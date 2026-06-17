@@ -260,6 +260,18 @@ Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 }
 ```
 
+#### 9c: Record token usage
+
+Append this phase's token usage to the consolidation document and context:
+
+```bash
+TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+[ -n "$TU" ] && python3 "$TU" --phase wf-phase3-consolidate \
+  --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
+  --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE3_CONSOLIDATION.md" \
+  || echo "token-usage: script not found, skipping (best-effort)"
+```
+
 #### 9b: Phase Complete — Next Steps
 
 If interface files were created in Step 7, display:

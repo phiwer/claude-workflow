@@ -185,6 +185,15 @@ Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 }
 ```
 
+#### Record token usage
+
+Record this phase's token usage — its three review subagents are captured automatically (context only; it surfaces in the Phase 6 grand total):
+
+```bash
+TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+[ -n "$TU" ] && python3 "$TU" --phase wf-phase1-iterate --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" || echo "token-usage: script not found, skipping (best-effort)"
+```
+
 #### Phase Complete — Next Steps
 
 **If any REVISE verdicts or blocking issues** — display:

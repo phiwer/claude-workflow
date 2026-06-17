@@ -226,4 +226,10 @@ Worktrees are fully optional — omit `worktreeBase` (or set it to `null`) and t
 
 ---
 
+## Token usage
+
+Every phase records its token usage — main session **plus any subagents it spawned** (Phase 2 reviewers, Phase 1.5 agents) — into its artifact and the workflow context. Phase 6 (and the combined Phase 5+6) writes an all-phases grand-total table into the retrospective. Counts cover input, output, and cache read/creation tokens, read from the session transcripts. Best-effort: if the helper (`scripts/record-token-usage.py`) is missing, the phase proceeds without recording.
+
+---
+
 **`/phiwer:wf-clear-context`** — clears saved workflow context to start fresh on a new feature.

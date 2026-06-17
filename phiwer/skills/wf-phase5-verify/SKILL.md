@@ -189,7 +189,19 @@ Edit the main spec to update Status to "IMPLEMENTED".
 3. Summarize test results
 4. List any deviations
 
-### Step 9: Phase Complete — Next Steps
+### Step 9: Record token usage
+
+Append this phase's token usage to the verification document and context:
+
+```bash
+TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+[ -n "$TU" ] && python3 "$TU" --phase wf-phase5-verify \
+  --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
+  --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE5_VERIFICATION.md" \
+  || echo "token-usage: script not found, skipping (best-effort)"
+```
+
+### Step 10: Phase Complete — Next Steps
 
 **If VERIFIED** — display:
 > Phase 5 complete. Implementation verified. ✅
