@@ -58,7 +58,27 @@ Identify:
 Create: `{specDir}/{feature-id-lowercase}/`
 (e.g., `{specDir}/sf14/` for SF-14)
 
-## Step 6: Generate spec file
+## Step 6: Preserve and transcribe attached design assets
+
+If the input includes attached images (wireframes, diagrams, screenshots, photos of hand-drawn
+notes) — or the user points at such assets — capture them durably **before** drafting. Images
+attached to a chat live only in the current session: every later session (Phase 1 iterate, Phase 2
+review, Phase 4 implementation) starts fresh without them, so anything not written into the repo is
+lost, and the reviewers end up working from prose alone.
+
+1. Create `{specDir}/{feature-dir}/design/`.
+2. Save each attached image into that folder under a descriptive, stable name with consistent
+   numbering you can cite from the spec (e.g. `image-1-{short-topic}.ext`, `image-2-{short-topic}.ext`).
+3. Create `{specDir}/{feature-dir}/design/DESIGN_SOURCE.md`. For each image, write a full text
+   transcription: every label, box, arrow, and annotation, **plus the design decision it encodes**.
+   Include a cross-reference table mapping each file to how the spec cites it (e.g. `Image #N`) — and
+   note that the asset's own internal numbering may differ from the citation order.
+4. Read each image carefully and extract **all** of its information before you draft — never draft
+   from a partial reading. The transcription, not the image, is what every later phase reads.
+
+Skip this step only when no design assets were provided.
+
+## Step 7: Generate spec file
 
 Create `{specDir}/{feature-dir}/{FEATURE-ID}_{NAME}_SPEC.md`.
 
@@ -70,6 +90,14 @@ Create `{specDir}/{feature-dir}/{FEATURE-ID}_{NAME}_SPEC.md`.
 **Status**: DRAFT
 **Created**: {date}
 **Complexity**: {Simple | Medium | Complex}
+
+---
+
+## Design Source (if design assets were attached)
+
+The design assets that informed this spec are saved and transcribed under
+[`design/DESIGN_SOURCE.md`](design/DESIGN_SOURCE.md). Every `Image #N` reference in this document
+resolves there.
 
 ---
 
@@ -201,7 +229,7 @@ Where:
 **Last Updated**: {date}
 ```
 
-## Step 7: Output summary
+## Step 8: Output summary
 
 Display:
 1. Spec file path
@@ -211,9 +239,9 @@ Display:
 5. Each open question
 6. Any HTTP endpoints
 
-## Step 8: Write context file and prompt for next step
+## Step 9: Write context file and prompt for next step
 
-### 8a: Write context file
+### 9a: Write context file
 
 Write `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 
@@ -237,7 +265,7 @@ Write `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
 }
 ```
 
-### 8b: Create git worktree (if configured)
+### 9b: Create git worktree (if configured)
 
 If `worktreeBase` is non-null:
 
@@ -257,7 +285,7 @@ If `worktreeBase` is non-null:
    Implementation phases will run from this directory.
    ```
 
-### 8c: Next steps
+### 9c: Next steps
 
 Display based on `complexityTier`:
 
