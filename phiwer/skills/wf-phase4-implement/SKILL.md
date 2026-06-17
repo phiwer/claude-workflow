@@ -38,6 +38,7 @@ $ARGUMENTS
 If no spec path was provided:
 
 1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, use it as the context file.
+   - **Reconcile before trusting it.** The on-disk artifacts are the source of truth; the context file is only a cache a prior phase may have failed to update (interrupted, errored, or you took over manually). Before relying on `lastPhase`, check it against reality — the spec `Status`, which `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE*.md` documents exist, and whether the implementation and tests are present. If they disagree, **trust the artifacts**, tell the user about the drift, and rewrite the context to match before continuing.
 2. Check the context file for recent context (within 24 hours, lastPhase=wf-phase3-consolidate)
 3. If valid context found, ask user if they want to continue with it
    - **Worktree note**: If `worktreePath` is set in the context, note this to the user and display the worktree path. Implementation should run from that directory.
@@ -140,7 +141,52 @@ Check off each item from the spec:
 {Any deviations from spec or issues encountered}
 ```
 
-### Step 9: Phase Complete — Next Steps
+### Step 9: Record the implementation (durable state)
+
+Persist a durable record so Phase 5/6 — and anyone glancing at the folder — can see Phase 4 ran and what it did. **Do this even if you reached this point after manual fixes or an interrupted run**; it is what makes the workflow state survive a non-clean finish. Phase 4 is otherwise the only phase that leaves no on-disk marker.
+
+**9a — Lightweight implementation record.** Write `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md`. Keep it short — it exists for quick visual inspection of what happened, not as a report:
+
+```markdown
+# {FEATURE-ID} Phase 4: Implementation
+
+**Date**: {date}
+**Spec**: {spec path}
+**Status**: ✅ IMPLEMENTED
+
+## Files Created
+- {file} — {one-line purpose}
+
+## Files Modified
+- {file} — {what changed}
+
+## Tests
+- {X} classes, {Y} tests — {all passing | N failing}
+
+## Deviations from Spec
+- {deviation and why — or "None"}
+```
+
+**9b — Update the context file.** Create/update `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json` with `lastPhase: "wf-phase4-implement"` and a short summary, so Phase 5 has a clean handoff instead of reconstructing the deviations. Preserve existing keys such as `worktreePath` / `branchName`:
+
+```json
+{
+  "specPath": "{spec path}",
+  "featureId": "{FEATURE-ID}",
+  "lastPhase": "wf-phase4-implement",
+  "specDir": "{specDir}",
+  "archiveDir": "{archiveDir}",
+  "context": {
+    "filesCreated": {count},
+    "filesModified": {count},
+    "testCount": {count},
+    "deviations": ["{short deviation, omit if none}"],
+    "recommendedNextPhase": "wf-phase5-verify"
+  }
+}
+```
+
+### Step 10: Phase Complete — Next Steps
 
 Display:
 > Phase 4 complete. Implementation done.

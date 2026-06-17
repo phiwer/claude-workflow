@@ -35,6 +35,7 @@ $ARGUMENTS
 If no spec path was provided:
 
 1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, check it for a recent `specPath` to use.
+   - **Reconcile before trusting it.** The on-disk artifacts are the source of truth; the context file is only a cache a prior phase may have failed to update (interrupted, errored, or you took over manually). Before relying on `lastPhase`, check it against reality — the spec `Status`, which `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE*.md` documents exist, and whether the implementation and tests are present. If they disagree, **trust the artifacts**, tell the user about the drift, and rewrite the context to match before continuing.
 2. Use Glob to find active specs: `{specDir}/*/*.md`
 2. Filter for `*_SPEC.md` files with Status: "READY FOR IMPLEMENTATION" or similar
 3. Check which specs have PHASE3_CONSOLIDATION.md but no PHASE5_VERIFICATION.md
@@ -46,7 +47,8 @@ If no spec path was provided:
 Read:
 1. The main spec file
 2. The Phase 3 consolidation document
-3. CLAUDE.md for implementation context
+3. The Phase 4 implementation record (`{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md`), if present — use its deviations list as the handoff rather than reconstructing it
+4. CLAUDE.md for implementation context
 
 ### Step 3: Build and Run Tests
 
