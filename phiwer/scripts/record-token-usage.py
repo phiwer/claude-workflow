@@ -9,7 +9,8 @@ subagents it spawned (`<session>/subagents/agent-*.jsonl`), then:
                   given) and a tokenUsage entry into the workflow context JSON.
   --mode total  : reads the context's recorded per-phase usage and writes a
                   "## Token Usage (all phases)" grand-total table into the
-                  artifact (used by Phase 6).
+                  artifact (used by Phase 6). The table surfaces non-cached
+                  output (generated) tokens per phase alongside the gross total.
 
 Best-effort: any missing file is treated as zero and never aborts the phase.
 """
@@ -162,15 +163,23 @@ def _total(args):
     lines = [
         "## Token Usage (all phases)",
         "",
-        "| phase | subagents | total tokens |",
-        "|-------|----------:|-------------:|",
+        "| phase | subagents | output (non-cached) | total tokens |",
+        "|-------|----------:|--------------------:|-------------:|",
     ]
     grand = 0
+    grand_output = 0
     for phase, value in usage.items():
         grand += value.get("total", 0)
-        lines.append(f"| {phase} | {value.get('subagentCount', 0)} | {_fmt(value.get('total', 0))} |")
-    lines.append(f"| **grand total** |  | **{_fmt(grand)}** |")
+        output = ((value.get("main") or {}).get("output_tokens", 0)
+                  + (value.get("subagents") or {}).get("output_tokens", 0))
+        grand_output += output
+        lines.append(f"| {phase} | {value.get('subagentCount', 0)} "
+                     f"| {_fmt(output)} | {_fmt(value.get('total', 0))} |")
+    lines.append(f"| **grand total** |  | **{_fmt(grand_output)}** | **{_fmt(grand)}** |")
     lines.append("")
+    lines.append("_\"output (non-cached)\" is generated tokens, which are never served "
+                 "from cache; the remainder of each phase's total is input, the bulk of "
+                 "it cache reads._")
     body = "\n".join(lines)
     if args.artifact:
         _upsert(args.artifact, "## Token Usage (all phases)", body)

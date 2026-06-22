@@ -214,7 +214,7 @@ If `.claude/agents/` is empty or `.claude/context/` does not exist, skip silentl
 
 ### Step 10: Record token usage and totals
 
-Run this **before** Step 12 clears the context file. First record this phase's own usage, then write the all-phases grand total into the retrospective document:
+Run this **before** Step 12 clears the context file. First record this phase's own usage, then write the all-phases grand total into the retrospective document. The all-phases table includes a **non-cached output (generated) tokens** column per phase plus a grand-total output figure — surface this in the Step 13 summary, since output is the generated work and the clearest cost signal (the rest of the gross total is input, mostly cache reads):
 
 ```bash
 TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
@@ -272,7 +272,8 @@ Display:
 3. List project documentation updates made
 4. List CLAUDE.md optimizations made (merges, removals, condensations)
 5. Confirm agent context excerpts refreshed
-6. 🎉 Feature workflow complete!
+6. Report total **non-cached output (generated) tokens** across all phases (from the Step 10 all-phases table), as the headline cost figure
+7. 🎉 Feature workflow complete!
 
 ### Step 14: Feature Complete
 
