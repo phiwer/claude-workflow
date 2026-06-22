@@ -56,15 +56,22 @@ Read:
 4. The Phase 4 implementation record (`{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md`), if present — use its deviations list as the handoff rather than reconstructing it
 5. CLAUDE.md for implementation context
 
-### Step 3: Build and Run Tests
+### Step 3: Build and Run the FULL Test Suite
 
-Run the project's build and test suite (check CLAUDE.md for the specific commands):
+Run the project's **entire** test suite — every test, not a hand-picked subset. Check CLAUDE.md for the project-specific command.
 
 ```bash
-# See CLAUDE.md "Build & Test Commands" section for project-specific commands
+# Run the ENTIRE suite. Do NOT scope to specific classes/files.
+# mvn test (NOT: mvn test -Dtest=SomeClass) — npm test — pytest
 ```
 
-Capture:
+**Always run the full suite; never let the Phase 5 verdict rest on a targeted run** (`-Dtest=`, `pytest …::…`, `.only`, a single spec file). A targeted run only proves the tests you *thought to name* still pass — it cannot catch regressions in classes you didn't think to run. The risk is highest for the changes Phase 5 is least suspicious of: a **constraint removal** or behaviour change has a regression surface of "every test that exercised the old behaviour," which is exactly the set you won't hand-pick.
+
+> Precedent — why this rule exists: TRA-1466 removed an override forcing pipeline reports to `DATA` content. A targeted Phase 5 run of two hand-picked classes passed, but a stale test in an *unrun* class still asserted the old contract; only CI (full suite) caught it after Phase 5 signed off.
+
+A targeted run is fine **while iterating**, but the verdict must be backed by one clean **full-suite** run, and the document must record the full-suite totals.
+
+Capture (from the full-suite run):
 - Total tests run
 - Tests passed/failed
 - Any new test files added
