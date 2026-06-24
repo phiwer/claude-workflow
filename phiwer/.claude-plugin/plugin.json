@@ -1,7 +1,7 @@
 {
   "name": "phiwer",
   "description": "A structured 6-phase feature development workflow (spec → review → consolidate → implement → verify → retrospective)",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "author": {
     "name": "phiwer",
     "url": "https://github.com/phiwer"
