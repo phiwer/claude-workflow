@@ -194,6 +194,17 @@ Write `.claude/workflow/project-config.json`:
 }
 ```
 
+Then ensure `.claude/workflow/` is git-ignored. This directory holds machine-local config
+(`project-config.json`) and transient per-feature state (`{FEATURE-ID}-context.json`) that
+must not be shared — unlike `.claude/agents/` and `.claude/context/`, which are committed.
+
+1. Run `git rev-parse --is-inside-work-tree 2>/dev/null` — if it does not print `true`,
+   skip this (not a git repo).
+2. Read `.gitignore` at the repo root (or start empty if absent).
+3. If no existing line matches `.claude/workflow/` (or a broader `.claude/` ignore that
+   already covers it), append `.claude/workflow/` on its own line. Do not duplicate an entry
+   that is already present, and do not remove or reorder existing lines.
+
 ### Step 5: Write Skill Permissions
 
 Update `.claude/settings.local.json` to allow all `wf-*` skills to run without permission

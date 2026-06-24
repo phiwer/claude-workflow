@@ -32,6 +32,17 @@ Run once per project to detect the tech stack, create project-specific review ag
 
 This creates `.claude/agents/` (e.g. `qa-engineer.md`, `backend-dev.md`) and `.claude/context/` (CLAUDE.md excerpts per agent). Agent context is automatically refreshed at the end of every phase6 retrospective — no manual re-run needed.
 
+### What to commit vs. ignore
+
+- **Commit** `.claude/agents/` and `.claude/context/` — the review personas are project-shared, so the whole team gets the same Phase 2 reviewers.
+- **Ignore** `.claude/workflow/` — it holds machine-local config (`project-config.json`) and transient per-feature state (`{FEATURE-ID}-context.json`) that should not be shared. Add this to your project's `.gitignore`:
+
+  ```gitignore
+  .claude/workflow/
+  ```
+
+  Because `project-config.json` is ignored, each fresh checkout regenerates it by running `/phiwer:wf-init` once (or just recreate the small JSON by hand — see the worktree example below for its shape).
+
 ---
 
 ## Phases
