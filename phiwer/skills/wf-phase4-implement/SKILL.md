@@ -106,6 +106,65 @@ Run the project's test suite (see CLAUDE.md or project docs for specific command
 
 Fix any failures, re-run until passing.
 
+### Step 6.5: Rule-Compliance Self-Review Loop
+
+Before declaring the implementation done, run a **fresh-eyes** review of the *generated code*
+against the project's own ruleset, and iterate until clean. This catches rule violations that
+spec-completeness checks and a passing test suite do not.
+
+This step is **project-agnostic**: the rules come from the project (its `CLAUDE.md` and agent
+"Constitution Alignment" sections), never from this skill. The same loop works in any project.
+
+1. **Build the review diff.** Collect the changed code:
+   - Determine the base branch:
+     ```
+     BASE=$(git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/@@')
+     # if empty, fall back in order: origin/main, main, master
+     ```
+   - `git diff $(git merge-base HEAD "$BASE")...HEAD` for committed branch changes, plus
+     `git diff` and `git diff --staged` for uncommitted work. Scope to source/test files.
+
+2. **Spawn a fresh reviewer subagent (via Task).** Do NOT review your own code inline — use a
+   separate agent so it has no attachment to the choices you made.
+   - If `.claude/agents/compliance-reviewer.md` exists, spawn that agent.
+   - Otherwise spawn a general-purpose agent with the **Generic Reviewer Brief** below.
+   Pass it the review diff (or the changed-file list if the diff is large).
+
+3. **Read the structured findings** and **fix every MUST-FIX**. Fold each fix into the commit of
+   the code it corrects — do not create a separate "fix violations" commit.
+
+4. **Re-spawn the reviewer** on the updated diff. Repeat **until the verdict is CLEAN (zero
+   MUST-FIX) or 3 passes have run.**
+
+5. If any code changed during fixes, re-run the project's static-analysis and test commands (see
+   CLAUDE.md) and confirm they pass.
+
+6. If MUST-FIX items remain after 3 passes, **stop and report them to the user** rather than
+   looping further. Carry residual NITs and the pass count into the Step 8 summary.
+
+#### Generic Reviewer Brief
+
+Use this verbatim when no project `compliance-reviewer` agent exists. It is deliberately
+project-agnostic — the authoritative rules come from the project, not this brief.
+
+> You are a fresh-eyes code reviewer. You did not write this code. Review ONLY the supplied diff.
+>
+> **Build your rubric from the project itself — do not invent rules:**
+> 1. Read `CLAUDE.md` (and any nested `**/CLAUDE.md`). Extract every enforceable rule: coding
+>    conventions, architectural constraints, test rules, naming, and any numbered/agreed rules.
+> 2. Read any `.claude/agents/*.md` files and harvest their "Constitution Alignment" (or
+>    equivalent) sections — these distil the project's rules.
+> 3. Treat those as the authoritative ruleset. You may also flag universal code smells (dead code,
+>    obvious bugs), but label every project-rule breach by the rule it violates.
+>
+> **Review the diff** — both production and test changes — against that rubric.
+>
+> **Output contract.** For each finding, emit one line:
+> `file:line · rule (cite the CLAUDE.md heading / rule id) · severity(MUST-FIX|NIT) · problem · suggested fix`
+> Severity: MUST-FIX = unambiguous breach of a stated project rule; NIT = stylistic or
+> low-confidence. End with exactly one verdict line: `CLEAN` (no MUST-FIX) or
+> `VIOLATIONS: <n> must-fix`. Do not rewrite the code; report findings only.
+
 ### Step 7: Verify Completeness
 
 Check off each item from the spec:
@@ -116,6 +175,7 @@ Check off each item from the spec:
 - [ ] Integration points updated
 - [ ] HTTP endpoint working (if applicable)
 - [ ] Tests written and passing
+- [ ] Rule-compliance review CLEAN (or residual items reported to the user)
 
 ### Step 8: Output Summary
 
@@ -136,6 +196,11 @@ Check off each item from the spec:
 - {X} test classes created
 - {Y} tests total
 - All passing ✅
+
+### Rule Compliance
+- Self-review passes run: {N}
+- Verdict: CLEAN ✅ / {n} residual item(s) reported below
+- Residual NITs / unresolved MUST-FIX: {list, or "none"}
 
 ### Notes
 {Any deviations from spec or issues encountered}

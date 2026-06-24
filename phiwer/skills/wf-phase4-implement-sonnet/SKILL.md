@@ -75,6 +75,43 @@ Run the project's test suite (see CLAUDE.md for the specific commands):
 
 Fix any failures, re-run until passing.
 
+### Step 4.5: Rule-Compliance Self-Review Loop
+
+Before declaring done, run a **fresh-eyes** review of the *generated code* against the project's
+own ruleset and iterate until clean. Project-agnostic: the rules come from the project's `CLAUDE.md`
+and agent "Constitution Alignment" sections, never from this skill.
+
+1. **Build the review diff.** Determine the base branch
+   (`git symbolic-ref --quiet refs/remotes/origin/HEAD | sed 's@^refs/remotes/@@'`; fall back to
+   `origin/main` → `main` → `master`), then `git diff $(git merge-base HEAD "$BASE")...HEAD` plus
+   `git diff`/`git diff --staged` for uncommitted work. Scope to source/test files.
+2. **Spawn a fresh reviewer subagent (via Task)** — do not review your own code inline. Use
+   `.claude/agents/compliance-reviewer.md` if it exists, otherwise a general-purpose agent with the
+   **Generic Reviewer Brief** below. Pass it the diff (or changed-file list if large).
+3. **Fix every MUST-FIX**, folding each fix into the commit of the code it corrects (no separate
+   "fix violations" commit).
+4. **Re-spawn the reviewer** on the updated diff; repeat **until CLEAN or 3 passes**.
+5. If code changed during fixes, re-run the project's static-analysis and test commands; confirm
+   they pass.
+6. If MUST-FIX items remain after 3 passes, **stop and report them to the user**; carry residual
+   NITs and the pass count into the summary.
+
+#### Generic Reviewer Brief
+
+Use verbatim when no project `compliance-reviewer` agent exists. The rules come from the project.
+
+> You are a fresh-eyes code reviewer. You did not write this code. Review ONLY the supplied diff.
+>
+> Build your rubric from the project: read `CLAUDE.md` (and nested `**/CLAUDE.md`) and any
+> `.claude/agents/*.md` "Constitution Alignment" sections; extract every enforceable rule (coding
+> conventions, architecture, test rules, naming, numbered/agreed rules) and treat those as
+> authoritative. You may also flag universal code smells, but label project-rule breaches by rule.
+>
+> Review the diff — production and test changes — against that rubric. For each finding emit one
+> line: `file:line · rule (cite heading / rule id) · severity(MUST-FIX|NIT) · problem · suggested fix`.
+> MUST-FIX = unambiguous breach; NIT = stylistic/low-confidence. End with exactly one verdict line:
+> `CLEAN` or `VIOLATIONS: <n> must-fix`. Report only; do not rewrite the code.
+
 ### Step 5: Summary
 
 ```
@@ -90,6 +127,9 @@ Fix any failures, re-run until passing.
 
 ### Tests
 - {count} tests, all passing
+
+### Rule Compliance
+- Self-review passes run: {N}; verdict: CLEAN ✅ / {n} residual item(s) reported
 ```
 
 ### Step 6: Record the implementation (durable state)

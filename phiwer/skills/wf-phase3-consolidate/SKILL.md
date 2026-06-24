@@ -210,8 +210,11 @@ If not set, use AskUserQuestion:
    - Javadoc / docstrings describing intent and contract
    - **No implementation logic** — bodies are empty, `abstract`, or `throw new UnsupportedOperationException()`
 5. List all files created with full paths
+6. **Run the Rule-Compliance Self-Review Loop on the created interface files** (see below)
+   before presenting them — the team should review contracts that already satisfy the project's
+   rules.
 
-Display:
+Display (after the review loop is CLEAN or its residual items are noted):
 ```
 ## Interface Files Created
 
@@ -221,6 +224,43 @@ Display:
 Review these files with your team. Once agreed, start a new session and
 run `/wf-phase4-implement` to implement against them.
 ```
+
+#### Rule-Compliance Self-Review Loop (interface files)
+
+A **fresh-eyes** review of the *generated interface/contract files* against the project's own
+ruleset, iterated until clean. Project-agnostic: the rules come from the project, not this skill.
+
+1. **Scope** = exactly the files listed in step 5 (newly created, likely uncommitted). Review these
+   files, not a branch diff.
+2. **Spawn a fresh reviewer subagent (via Task)** — do not review your own output inline. Use
+   `.claude/agents/compliance-reviewer.md` if it exists, otherwise a general-purpose agent with the
+   **Generic Reviewer Brief** below. Pass it the list of interface file paths.
+3. **Fix every MUST-FIX**. Re-spawn the reviewer on the updated files. Repeat **until CLEAN or 3
+   passes**. If MUST-FIX items remain after 3 passes, stop and report them to the user.
+
+##### Generic Reviewer Brief (interface/contract review)
+
+Use verbatim when no project `compliance-reviewer` agent exists.
+
+> You are a fresh-eyes reviewer of newly generated **interface/contract files** (public API only —
+> method signatures, parameter/return types, checked exceptions, Javadoc/docstrings). You did not
+> write them. Review ONLY the listed files.
+>
+> Build your rubric from the project: read `CLAUDE.md` (and nested `**/CLAUDE.md`) and any
+> `.claude/agents/*.md` "Constitution Alignment" sections; extract every enforceable rule that
+> applies to public contracts — naming (e.g. `create` not `save`, method names state the entity),
+> full interface Javadoc, parameter-type rules (e.g. no `Optional` as a parameter), checked-vs-
+> unchecked exception strategy, callee-owns-input-types, no public inner classes/records, identifier
+> value-object conventions, package/feature structure. Treat those as authoritative.
+>
+> **These files are contracts: bodies are intentionally empty / `abstract` / `throw new
+> UnsupportedOperationException()` — do NOT flag missing implementations.** Review only the
+> contract surface.
+>
+> For each finding emit one line:
+> `file:line · rule (cite heading / rule id) · severity(MUST-FIX|NIT) · problem · suggested fix`.
+> MUST-FIX = unambiguous breach; NIT = stylistic/low-confidence. End with exactly one verdict line:
+> `CLEAN` or `VIOLATIONS: <n> must-fix`. Report only; do not rewrite the code.
 
 **If no**: proceed to Step 8.
 
@@ -233,7 +273,8 @@ After completing consolidation, display:
 3. Full list of deferred items with reasons
 4. Version change summary
 5. Any unresolved questions that may come up during implementation
-6. If interface files were created: list them and note they need team review before phase4
+6. If interface files were created: list them, report the rule-compliance self-review result
+   (passes run, CLEAN or residual items), and note they need team review before phase4
 
 Then proceed to Step 9.
 
