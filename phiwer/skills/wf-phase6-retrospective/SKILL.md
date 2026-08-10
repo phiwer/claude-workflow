@@ -78,11 +78,13 @@ For each finding above, decide:
 2. Does CLAUDE.md already cover this? (Check the version read in Step 2.)
 3. If general and not already covered: draft the specific text to add, with the target section.
 
-Produce a numbered list of candidates:
+**Keep every candidate terse — a rule, not a narrative.** One line: the rule + a one-clause "why" + an `(SF-NNN)` tag. Do not include reviewer counts ("all three Phase 2 reviewers independently..."), "reconfirmed Nth time" tallies, or a full case-study walkthrough of how the bug was found and fixed. That full story already lives in the `{FEATURE-ID}_PHASE6_RETROSPECTIVE.md` this same phase is about to create in Step 6 — CLAUDE.md is loaded into every future session's context regardless of relevance, so it only needs enough for a future session to recognize and apply the rule; the SF-tag is the pointer back to this document for anyone who wants the full detail.
+
 ```
-[CANDIDATE 1] Section: "Testing" — "When adding X always include Y because Z." (Source: Phase 5 deviation)
-[CANDIDATE 2] Section: "Architecture" — "Prefer the A pattern over B because reviewers flagged B causes C." (Source: Phase 2 review)
+[CANDIDATE 1] Section: "Testing" — "When adding X always include Y because Z (SF-NNN)." (Source: Phase 5 deviation)
+[CANDIDATE 2] Section: "Architecture" — "Prefer the A pattern over B — reviewers found B causes C (SF-NNN)." (Source: Phase 2 review)
 ```
+Not: "Prefer the A pattern over B — found by all three Phase 2 reviewers independently, who each traced a different failure mode: reviewer 1 noted X, reviewer 2 noted Y while testing Z, reviewer 3 confirmed via manual reproduction that B causes C under condition D, discovered originally in SF-NNN's v1.0 draft during Phase 2 review of the {X} component..." — that level of detail belongs in the retrospective document, not CLAUDE.md.
 
 Discard anything that is only true for this specific feature. Keep only what a future Claude instance working on an unrelated feature would benefit from knowing.
 
@@ -202,9 +204,9 @@ After adding new entries, read the full CLAUDE.md and do a consolidation pass:
 
 1. **Duplicates**: Find entries that say the same thing twice or near-identically — merge into one, keeping the more specific or complete phrasing
 2. **Contradictions**: Find entries that conflict — keep the newer or more specific one, remove the superseded one, note what was removed
-3. **Bloat**: Find sections that have grown unwieldy — condense without losing meaning
+3. **Narrative bloat**: Find entries — not just the one(s) added this phase, any entry in a section you're touching — written as a case-study narrative (reviewer counts, "reconfirmed Nth time" tallies, a full walkthrough of how a bug was found and fixed) rather than a crisp rule. Rewrite each down to: the rule, a one-clause why, its `(SF-NNN)` tag. Nothing is lost by cutting the narrative — it already lives in that spec's own `{FEATURE-ID}_PHASE6_RETROSPECTIVE.md`, which is the whole reason CLAUDE.md doesn't need to duplicate it. This is the single biggest lever for keeping CLAUDE.md's token cost down, since it's loaded into every session regardless of relevance — treat it as a required check every retrospective, not an optional cleanup.
 
-Make surgical edits only. Do not restructure or rewrite sections that are fine. Report every change made (merged, removed, condensed) so the user can verify nothing important was lost.
+Make surgical edits only for structure — do not reorder or rewrite whole sections that are otherwise fine. Narrative-vs-rule condensing within a fine section is explicitly in scope per point 3 above. Report every change made (merged, removed, condensed) so the user can verify nothing important was lost.
 
 ### Step 9: Refresh Agent Context Excerpts
 
