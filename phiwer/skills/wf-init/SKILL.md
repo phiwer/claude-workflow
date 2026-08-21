@@ -216,6 +216,7 @@ each of these entries to the `allow` array if not already present:
 ```
 "Skill(wf-init)"
 "Skill(wf-phase1-spec)"
+"Skill(wf-phase1-spec-haiku)"
 "Skill(wf-phase1-iterate)"
 "Skill(wf-phase2-review)"
 "Skill(wf-phase3-consolidate)"
@@ -284,7 +285,8 @@ Display:
   Phase 6)
 
 ### Available commands
-- /wf-phase1-spec       Create a feature spec from the roadmap
+- /wf-phase1-spec       Create a feature spec from the roadmap (Sonnet, default)
+- /wf-phase1-spec-haiku Create a spec (Haiku) — only when the pattern is obviously template-following
 - /wf-phase1-iterate    Quick pre-review of a DRAFT spec
 - /wf-phase2-review     Full design review with selected agents
 - /wf-phase3-consolidate Address feedback, finalize spec

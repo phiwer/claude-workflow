@@ -1,6 +1,6 @@
 ---
 name: wf-phase1-spec
-description: Phase 1 - Create an initial feature specification. Pass the feature ID and your description as arguments (with any images attached). Explores the codebase and generates a structured spec.
+description: Phase 1 - Create an initial feature specification. Pass the feature ID and your description as arguments (with any images attached). Explores the codebase and generates a structured spec. Use /wf-phase1-spec-haiku instead for a feature that clearly repeats an existing pattern.
 argument-hint: [feature-id] [your description of what the feature should do]
 allowed-tools: Read, Glob, Grep, Bash, Write
 model: sonnet
@@ -8,9 +8,11 @@ model: sonnet
 
 <!--
 Model Selection Guide:
-- Use Sonnet (default) for novel features or unclear requirements
-- Haiku is fine for pattern-following features where the template is obvious.
-  Any gaps get caught by Phase 2 agents anyway.
+- Use Sonnet (this command, default) for novel features or unclear requirements
+- Use /wf-phase1-spec-haiku instead when the pattern is obvious before you start — a feature
+  that clearly repeats an existing, already-implemented shape. Any gaps get caught by Phase 2
+  agents anyway, but that's expensive insurance to lean on routinely — the Haiku variant exists
+  for the genuinely-obvious case, not as a default.
 -->
 
 # Phase 1: Write Feature Specification
