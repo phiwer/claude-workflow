@@ -248,9 +248,11 @@ Use verbatim when no project `compliance-reviewer` agent exists.
 > method signatures, parameter/return types, checked exceptions, Javadoc/docstrings). You did not
 > write them. Review ONLY the listed files.
 >
-> Build your rubric from the project: read `CLAUDE.md` (and nested `**/CLAUDE.md`) and any
-> `.claude/agents/*.md` "Constitution Alignment" sections; extract every enforceable rule that
-> applies to public contracts — naming (e.g. `create` not `save`, method names state the entity),
+> Build your rubric from the project: read `CLAUDE.md` (and nested `**/CLAUDE.md`), **every file
+> matching `.claude/rules/*.md`** (a project may have split path-scoped rule content out of
+> CLAUDE.md — the governing rules may live there), and any `.claude/agents/*.md` "Constitution
+> Alignment" sections; extract every enforceable rule that applies to public contracts —
+> naming (e.g. `create` not `save`, method names state the entity),
 > full interface Javadoc, parameter-type rules (e.g. no `Optional` as a parameter), checked-vs-
 > unchecked exception strategy, callee-owns-input-types, no public inner classes/records, identifier
 > value-object conventions, package/feature structure. Treat those as authoritative.
@@ -312,6 +314,7 @@ TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scri
 [ -n "$TU" ] && python3 "$TU" --phase wf-phase3-consolidate \
   --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
   --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE3_CONSOLIDATION.md" \
+  --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}" \
   || echo "token-usage: script not found, skipping (best-effort)"
 ```
 

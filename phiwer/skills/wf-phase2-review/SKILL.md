@@ -252,6 +252,7 @@ TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scri
 [ -n "$TU" ] && python3 "$TU" --phase wf-phase2-review \
   --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
   --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE2_REVIEW.md" \
+  --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}" \
   || echo "token-usage: script not found, skipping (best-effort)"
 ```
 

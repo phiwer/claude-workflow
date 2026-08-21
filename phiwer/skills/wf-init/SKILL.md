@@ -231,13 +231,19 @@ Write the updated file. Do not remove any existing entries.
 
 ### Step 6: Create Context Excerpts
 
-If `CLAUDE.md` exists and is longer than 100 lines:
+Read `CLAUDE.md` **and** every file matching `.claude/rules/*.md` — a project may have split
+path-scoped rule content out of CLAUDE.md (see its own Overview table, if present, for whether
+it does this), and excerpts must draw from wherever the substantive rules actually live, not
+just the root file. If neither source has more than 100 lines combined, skip this step — the
+agent files already inline sufficient context.
 
-1. Read `CLAUDE.md`
-2. For each agent file in `.claude/agents/` (not just agents created in this run), create
-   or overwrite `.claude/context/{agent-name}.md` with only the CLAUDE.md sections most
-   relevant to that agent's domain. Always regenerate — even for existing agents that were
-   not replaced — so excerpts stay current as CLAUDE.md accumulates conventions over time.
+Otherwise:
+
+1. For each agent file in `.claude/agents/` (not just agents created in this run), create
+   or overwrite `.claude/context/{agent-name}.md` with only the sections most relevant to
+   that agent's domain, drawn from CLAUDE.md and `.claude/rules/*.md` combined. Always
+   regenerate — even for existing agents that were not replaced — so excerpts stay current as
+   the rule content accumulates conventions over time.
 
    - `backend-dev.md` — API patterns, service layer conventions, async pipelines, DB patterns, Spring patterns
    - `frontend-dev.md` — React/TypeScript conventions, component patterns, test patterns, UI conventions
@@ -249,15 +255,14 @@ If `CLAUDE.md` exists and is longer than 100 lines:
    - `ux-designer.md` — UI/UX patterns, accessibility, responsive design, user flows
    - `qa-engineer.md` — Test patterns, integration test setup, test isolation, coverage targets
 
-   Extract verbatim relevant sections. Keep each excerpt under 200 lines.
+   Extract verbatim relevant sections — including a worked example's content if the rule file
+   only links to one under `docs/architecture/examples/`, since the excerpt should be
+   self-contained for the agent reading it. Keep each excerpt under 200 lines.
 
-3. For each agent file **newly created** in Step 3, append this line to its
+2. For each agent file **newly created** in Step 3, append this line to its
    "## Project Context" section:
    > For compact project-convention reference, read `.claude/context/{name}.md`.
    Skip this for existing agents — they already have the line.
-
-If `CLAUDE.md` is absent or short (≤100 lines), skip this step — the agent files already
-inline sufficient context.
 
 ### Step 7: Output Summary
 
@@ -273,6 +278,10 @@ Display:
 - Spec directory: {specDir}
 - Archive directory: {archiveDir}
 - Roadmap file: {roadmapFile}
+- Token ledger: {specDir}/TOKEN_LEDGER.csv (created on first phase run — commit it like any
+  other file; it's the only durable, structured, cross-feature record of what each phase cost
+  and who ran it, unlike the per-feature context.json which is gitignored and deleted at
+  Phase 6)
 
 ### Available commands
 - /wf-phase1-spec       Create a feature spec from the roadmap

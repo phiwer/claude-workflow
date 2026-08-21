@@ -308,7 +308,7 @@ Record this phase's token usage into the context (Phase 1 has no report doc, so 
 
 ```bash
 TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
-[ -n "$TU" ] && python3 "$TU" --phase wf-phase1-spec --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" || echo "token-usage: script not found, skipping (best-effort)"
+[ -n "$TU" ] && python3 "$TU" --phase wf-phase1-spec --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}" || echo "token-usage: script not found, skipping (best-effort)"
 ```
 
 ### 9b: Create git worktree (if configured)

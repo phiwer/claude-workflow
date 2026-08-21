@@ -54,7 +54,9 @@ Read:
 2. The Phase 2 review document (if exists)
 3. The Phase 3 consolidation document (if exists)
 4. The Phase 4 implementation record (`{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md`), if present — use its deviations list as the handoff rather than reconstructing it
-5. CLAUDE.md for implementation context
+5. CLAUDE.md and every `.claude/rules/*.md` file for implementation context — a project may
+   have split path-scoped rule content out of CLAUDE.md, and both Part B's "does CLAUDE.md
+   already cover this" check and Step 11's optimization pass need the full picture
 
 ### Step 3: Build and Run the FULL Test Suite
 
@@ -293,9 +295,10 @@ Run this **before** Step 10d clears the context file. Records this combined sess
 TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
 CTX="{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json"
 DOC="{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE6_RETROSPECTIVE.md"
+LEDGER="{specDir}/TOKEN_LEDGER.csv"
 if [ -n "$TU" ]; then
-  python3 "$TU" --phase wf-phase5-6-complete --context "$CTX" --artifact "$DOC"
-  python3 "$TU" --mode total --context "$CTX" --artifact "$DOC"
+  python3 "$TU" --phase wf-phase5-6-complete --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
+  python3 "$TU" --mode total --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
 else
   echo "token-usage: script not found, skipping (best-effort)"
 fi
@@ -323,15 +326,18 @@ Delete `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json` — feature 
 
 ---
 
-## Step 11: Optimize CLAUDE.md
+## Step 11: Optimize CLAUDE.md (and any split-out rule files)
 
-After adding new entries, read the full CLAUDE.md and do a consolidation pass:
+After adding new entries, read the full CLAUDE.md **and every `.claude/rules/*.md` file** and
+do a consolidation pass across all of them together — a project may have split path-scoped
+rule content out of the root file (see CLAUDE.md's own Overview table, if present):
 
 1. **Duplicates**: Find entries that say the same thing twice or near-identically — merge into one, keeping the more specific or complete phrasing
 2. **Contradictions**: Find entries that conflict — keep the newer or more specific one, remove the superseded one, note what was removed
 3. **Bloat**: Find sections that have grown unwieldy — condense without losing meaning
+4. **New entries belong with their kind, not automatically in root CLAUDE.md.** Add a new test-specific rule to `.claude/rules/test-rules.md` and a new architecture/production-code rule to `.claude/rules/architecture-rules.md` if those exist — only add to root CLAUDE.md when the new rule is genuinely universal.
 
-Make surgical edits only. Do not restructure or rewrite sections that are fine. Report every change made (merged, removed, condensed) so the user can verify nothing important was lost.
+Make surgical edits only. Do not restructure or rewrite sections that are fine. Report every change made (merged, removed, condensed, and which file each landed in) so the user can verify nothing important was lost.
 
 **Check rule citations before trimming.** Run the citation-tracking script to see which
 ticket-tagged rules have never been referenced again by a later ticket's phase artifacts:
@@ -347,7 +353,7 @@ candidate for a human to reconsider.
 
 ## Step 12: Refresh Agent Context Excerpts
 
-After CLAUDE.md is finalized, regenerate `.claude/context/{agent-name}.md` for every agent file in `.claude/agents/` — extract only the sections relevant to each agent's domain from the updated CLAUDE.md. This keeps review agents current without requiring a manual `/wf-init` re-run.
+After CLAUDE.md and `.claude/rules/*.md` are finalized, regenerate `.claude/context/{agent-name}.md` for every agent file in `.claude/agents/` — extract only the sections relevant to each agent's domain, drawn from CLAUDE.md and every `.claude/rules/*.md` file combined. This keeps review agents current without requiring a manual `/wf-init` re-run.
 
 If `.claude/agents/` is empty or `.claude/context/` does not exist, skip silently.
 

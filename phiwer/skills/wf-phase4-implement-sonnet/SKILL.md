@@ -132,9 +132,11 @@ Use verbatim when no project `compliance-reviewer` agent exists. The rules come 
 
 > You are a fresh-eyes code reviewer. You did not write this code. Review ONLY the supplied diff.
 >
-> Build your rubric from the project: read `CLAUDE.md` (and nested `**/CLAUDE.md`) and any
-> `.claude/agents/*.md` "Constitution Alignment" sections; extract every enforceable rule (coding
-> conventions, architecture, test rules, naming, numbered/agreed rules) and treat those as
+> Build your rubric from the project: read `CLAUDE.md` (and nested `**/CLAUDE.md`), **every file
+> matching `.claude/rules/*.md`** (a project may have split path-scoped rule content out of
+> CLAUDE.md — the governing rules may live there), and any `.claude/agents/*.md` "Constitution
+> Alignment" sections; extract every enforceable rule (coding conventions, architecture, test
+> rules, naming, numbered/agreed rules) and treat those as
 > authoritative. You may also flag universal code smells, but label project-rule breaches by rule.
 >
 > Review the diff — production and test changes — against that rubric. For each finding emit one
@@ -214,6 +216,7 @@ TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scri
 [ -n "$TU" ] && python3 "$TU" --phase wf-phase4-implement-sonnet \
   --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
   --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md" \
+  --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}" \
   || echo "token-usage: script not found, skipping (best-effort)"
 ```
 

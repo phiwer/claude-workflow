@@ -12,17 +12,29 @@ subagents it spawned (`<session>/subagents/agent-*.jsonl`), then:
                   artifact (used by Phase 6). The table surfaces non-cached
                   output (generated) tokens per phase alongside the gross total.
 
+If --ledger is given, every --mode record call also appends one row to a git-committed CSV
+ledger (ticket, phase, who ran it, model, tokens) -- unlike the context JSON (gitignored,
+deleted at Phase 6) and the per-artifact markdown tables (scattered across many files), the
+ledger is a single durable, structured record of what every feature/phase actually cost, and
+who ran it. --mode total appends one further row per feature with phase="ALL_PHASES_TOTAL",
+attributed to whoever ran the completing phase -- i.e. who completed the feature.
+
 Best-effort: any missing file is treated as zero and never aborts the phase.
 """
 import argparse
+import csv
+import datetime
 import glob
 import json
 import os
 import re
+import subprocess
 import sys
 
 USAGE_KEYS = ("input_tokens", "output_tokens",
               "cache_read_input_tokens", "cache_creation_input_tokens")
+LEDGER_HEADER = ("timestamp", "ticket", "phase", "user", "model",
+                  "main_total", "subagent_total", "subagent_count", "phase_total")
 
 
 def _find_main_transcript(cfg, sid):
@@ -115,6 +127,65 @@ def _upsert(artifact, heading, body):
     return True
 
 
+def _current_user():
+    """Best-effort identity of whoever is running this phase. git identity is preferred over
+    the OS login since it reflects the actual developer on a shared machine, and matches how
+    the rest of this project already attributes work (commit authorship)."""
+    for cmd in (("git", "config", "user.name"), ("git", "config", "user.email")):
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=5, check=False)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        value = result.stdout.strip()
+        if result.returncode == 0 and value:
+            return value
+    try:
+        return os.getlogin()
+    except OSError:
+        return os.environ.get("USER") or os.environ.get("USERNAME") or "unknown"
+
+
+def _extract_primary_model(path):
+    """Best-effort: the most common `message.model` value in a transcript. Not load-bearing
+    for anything else this script does -- if the field is absent (older transcript formats,
+    subagent files that don't carry it) this just returns "" and the ledger row leaves the
+    column blank rather than failing."""
+    counts = {}
+    try:
+        with open(path, encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except ValueError:
+                    continue
+                model = (obj.get("message") or {}).get("model")
+                if model:
+                    counts[model] = counts.get(model, 0) + 1
+    except (FileNotFoundError, IsADirectoryError):
+        pass
+    return max(counts, key=counts.get) if counts else ""
+
+
+def _append_ledger(ledger_path, row):
+    """Append one row to the git-committed token ledger, writing the header first if the
+    file is new. Best-effort: a failure here must never abort the phase."""
+    if not ledger_path:
+        return
+    try:
+        os.makedirs(os.path.dirname(ledger_path) or ".", exist_ok=True)
+        is_new = not os.path.exists(ledger_path)
+        with open(ledger_path, "a", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle)
+            if is_new:
+                writer.writerow(LEDGER_HEADER)
+            writer.writerow(row)
+    except OSError as exc:
+        print(f"token-usage: could not write ledger {ledger_path}: {exc}", file=sys.stderr)
+
+
 def _load_context(path):
     if os.path.exists(path):
         try:
@@ -152,6 +223,15 @@ def _record(args, cfg, sid):
     with open(args.context, "w", encoding="utf-8") as handle:
         json.dump(data, handle, indent=2)
     print(section)
+
+    if args.ledger:
+        ticket = args.ticket or data.get("featureId") or "unknown"
+        model = _extract_primary_model(main_tx)
+        _append_ledger(args.ledger, (
+            datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+            ticket, args.phase, _current_user(), model,
+            main["total"], sub["total"], subcount, combined["total"],
+        ))
 
 
 def _artifact_phase_total(path):
@@ -242,6 +322,15 @@ def _total(args):
         _upsert(args.artifact, "## Token Usage (all phases)", body)
     print(body)
 
+    if args.ledger:
+        ticket = args.ticket or data.get("featureId") or "unknown"
+        true_total = grand + (sum(total for _name, total in missing) if missing else 0)
+        _append_ledger(args.ledger, (
+            datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+            ticket, "ALL_PHASES_TOTAL", _current_user(), "",
+            "", "", "", true_total,
+        ))
+
 
 def main():
     parser = argparse.ArgumentParser(description="Record workflow phase token usage.")
@@ -249,6 +338,12 @@ def main():
     parser.add_argument("--context", required=True, help="path to {FEATURE-ID}-context.json")
     parser.add_argument("--artifact", default="", help="phase artifact markdown file")
     parser.add_argument("--mode", choices=["record", "total"], default="record")
+    parser.add_argument("--ledger", default="",
+                         help="path to a git-committed CSV ledger to append this row to "
+                              "(e.g. {specDir}/TOKEN_LEDGER.csv); omit to skip ledger writing")
+    parser.add_argument("--ticket", default="",
+                         help="ticket id for the ledger row; defaults to the context file's "
+                              "featureId if omitted")
     args = parser.parse_args()
 
     cfg = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")

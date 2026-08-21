@@ -50,7 +50,9 @@ Read:
 2. Phase 2 review document (if exists)
 3. Phase 3 consolidation document (if exists)
 4. Phase 5 verification document
-5. CLAUDE.md for context
+5. CLAUDE.md and every `.claude/rules/*.md` file for context — a project may have split
+   path-scoped rule content out of CLAUDE.md, and both Step 3's "does CLAUDE.md already cover
+   this" check and Step 8's optimization pass need the full picture, not just the root file
 
 ### Step 3: Extract Actionable Insights
 
@@ -198,15 +200,20 @@ Edit the relevant project docs based on what was identified in Step 5:
 3. **Domain reference docs** (e.g., GAME_MECHANICS.md if applicable): Add new formulas/constants
 4. **README.md** (if it tracks implemented features): Update feature list
 
-### Step 8: Optimize CLAUDE.md
+### Step 8: Optimize CLAUDE.md (and any split-out rule files)
 
-After adding new entries, read the full CLAUDE.md and do a consolidation pass:
+After adding new entries, read the full CLAUDE.md **and every `.claude/rules/*.md` file** and
+do a consolidation pass across all of them together — a project may have split path-scoped
+rule content out of the root file (see CLAUDE.md's own Overview table, if present), and
+duplicates/contradictions can just as easily arise between a rule file and CLAUDE.md as within
+one document:
 
 1. **Duplicates**: Find entries that say the same thing twice or near-identically — merge into one, keeping the more specific or complete phrasing
 2. **Contradictions**: Find entries that conflict — keep the newer or more specific one, remove the superseded one, note what was removed
 3. **Narrative bloat**: Find entries — not just the one(s) added this phase, any entry in a section you're touching — written as a case-study narrative (reviewer counts, "reconfirmed Nth time" tallies, a full walkthrough of how a bug was found and fixed) rather than a crisp rule. Rewrite each down to: the rule, a one-clause why, its `(SF-NNN)` tag. Nothing is lost by cutting the narrative — it already lives in that spec's own `{FEATURE-ID}_PHASE6_RETROSPECTIVE.md`, which is the whole reason CLAUDE.md doesn't need to duplicate it. This is the single biggest lever for keeping CLAUDE.md's token cost down, since it's loaded into every session regardless of relevance — treat it as a required check every retrospective, not an optional cleanup.
+4. **New entries belong with their kind, not automatically in root CLAUDE.md.** If the project has split path-scoped rule files, add a new test-specific rule to `.claude/rules/test-rules.md` and a new architecture/production-code rule to `.claude/rules/architecture-rules.md` — only add to root CLAUDE.md when the new rule is genuinely universal (not scoped to one kind of file). Adding everything to root regardless defeats the point of the split.
 
-Make surgical edits only for structure — do not reorder or rewrite whole sections that are otherwise fine. Narrative-vs-rule condensing within a fine section is explicitly in scope per point 3 above. Report every change made (merged, removed, condensed) so the user can verify nothing important was lost.
+Make surgical edits only for structure — do not reorder or rewrite whole sections that are otherwise fine. Narrative-vs-rule condensing within a fine section is explicitly in scope per point 3 above. Report every change made (merged, removed, condensed, and which file each landed in) so the user can verify nothing important was lost.
 
 **Check rule citations before trimming.** Run the citation-tracking script to see which
 ticket-tagged rules have never been referenced again by a later ticket's phase artifacts —
@@ -224,7 +231,7 @@ every rule earns permanent shelf space by default.
 
 ### Step 9: Refresh Agent Context Excerpts
 
-After CLAUDE.md is finalized, regenerate `.claude/context/{agent-name}.md` for every agent file in `.claude/agents/` — extract only the sections relevant to each agent's domain from the updated CLAUDE.md. This keeps review agents current without requiring a manual `/wf-init` re-run.
+After CLAUDE.md and `.claude/rules/*.md` are finalized, regenerate `.claude/context/{agent-name}.md` for every agent file in `.claude/agents/` — extract only the sections relevant to each agent's domain, drawn from CLAUDE.md and every `.claude/rules/*.md` file combined. This keeps review agents current without requiring a manual `/wf-init` re-run.
 
 If `.claude/agents/` is empty or `.claude/context/` does not exist, skip silently.
 
@@ -236,9 +243,10 @@ Run this **before** Step 12 clears the context file. First record this phase's o
 TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
 CTX="{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json"
 DOC="{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE6_RETROSPECTIVE.md"
+LEDGER="{specDir}/TOKEN_LEDGER.csv"
 if [ -n "$TU" ]; then
-  python3 "$TU" --phase wf-phase6-retrospective --context "$CTX" --artifact "$DOC"
-  python3 "$TU" --mode total --context "$CTX" --artifact "$DOC"
+  python3 "$TU" --phase wf-phase6-retrospective --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
+  python3 "$TU" --mode total --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
 else
   echo "token-usage: script not found, skipping (best-effort)"
 fi

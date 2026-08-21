@@ -186,7 +186,10 @@ project-agnostic — the authoritative rules come from the project, not this bri
 > You are a fresh-eyes code reviewer. You did not write this code. Review ONLY the supplied diff.
 >
 > **Build your rubric from the project itself — do not invent rules:**
-> 1. Read `CLAUDE.md` (and any nested `**/CLAUDE.md`). Extract every enforceable rule: coding
+> 1. Read `CLAUDE.md` (and any nested `**/CLAUDE.md`), **and every file matching
+>    `.claude/rules/*.md`** — a project may have split path-scoped rule content out of
+>    CLAUDE.md, and the rules that actually govern the code you're reviewing may live there
+>    instead of (or in addition to) the root file. Extract every enforceable rule: coding
 >    conventions, architectural constraints, test rules, naming, and any numbered/agreed rules.
 > 2. Read any `.claude/agents/*.md` files and harvest their "Constitution Alignment" (or
 >    equivalent) sections — these distil the project's rules.
@@ -294,6 +297,7 @@ TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scri
 [ -n "$TU" ] && python3 "$TU" --phase wf-phase4-implement \
   --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
   --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md" \
+  --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}" \
   || echo "token-usage: script not found, skipping (best-effort)"
 ```
 
