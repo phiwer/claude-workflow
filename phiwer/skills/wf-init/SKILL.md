@@ -177,12 +177,11 @@ Then ask about git worktrees:
 
 Use AskUserQuestion:
 - header: "Git worktrees?"
-- question: "Enable git worktrees for parallel feature development? Specify a base directory where worktrees will be created (e.g. `..` for sibling directories)."
-- option1: label="Yes — set base dir", description="Enter path relative to project root. E.g. `..` creates worktrees as siblings."
-- option2: label="No — skip", description="Work on one feature at a time without worktrees"
+- question: "Isolate each feature in its own git worktree for parallel development? Uses Claude Code's native worktree mechanism (EnterWorktree) — creates each feature's worktree at .claude/worktrees/{feature-id}/ and blocks accidental edits to the main checkout while working in one. Location and base-branch behavior are configured at the Claude Code level (worktree.baseRef in settings.json, or a WorktreeCreate hook for a custom location), not by this plugin."
+- option1: label="Yes — enable worktrees", description="Each feature gets an isolated native worktree from Phase 1 onward"
+- option2: label="No — skip", description="Work on one feature at a time in the main checkout"
 
-If "Yes — set base dir": prompt for the base directory path and set `worktreeBase` to that value.
-If "No — skip": set `worktreeBase` to `null`.
+Set `worktreesEnabled` to `true` or `false` accordingly.
 
 Write `.claude/workflow/project-config.json`:
 ```json
@@ -190,7 +189,7 @@ Write `.claude/workflow/project-config.json`:
   "specDir": "{specDir}",
   "archiveDir": "{archiveDir}",
   "roadmapFile": "{roadmapFile}",
-  "worktreeBase": {worktreeBase or null}
+  "worktreesEnabled": {true or false}
 }
 ```
 

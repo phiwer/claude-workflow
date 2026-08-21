@@ -1,6 +1,6 @@
 ---
 name: wf-phase2-review
-description: Run Phase 2 design review with 2-6 subagents (dynamic selection). Produces a PHASE2_REVIEW.md artifact in the archive directory.
+description: Run Phase 2 design review with 2-4 subagents (dynamic selection). Produces a PHASE2_REVIEW.md artifact in the archive directory.
 model: sonnet
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion, Bash
@@ -103,11 +103,18 @@ Based on the spec content and available agent descriptions:
    Example for ≤4 agents:
    - Single question (multiSelect): "Which agents should review this spec?" with all agents listed
 
-4. Collect all selected agents across all questions. Store combined selection for Step 5.
+4. Collect all selected agents across all questions.
+
+5. **Cap at 4.** If more than 4 agents were selected, tell the user directly: multi-agent
+   review quality plateaus sharply past ~4 reviewers, with typical token duplication of
+   50-85% across the extra agents for little additional signal — the cost stops buying more
+   coverage. Ask them to narrow to the 4 most relevant (pre-select your top 4 by relevance to
+   make this fast), or explicitly confirm they want more than 4 anyway for this specific spec.
+   Store the final selection for Step 5.
 
 **Note**: An agent describing test coverage or QA is almost always relevant. Pre-select it
-if available. Use your judgment — selecting 2-4 focused agents is better than selecting all
-of them; narrow focus = sharper feedback.
+if available. Use your judgment when narrowing — 2-4 focused agents beats a larger set;
+narrow focus = sharper feedback, not just lower cost.
 
 **Token Savings**: Selecting 2-4 relevant agents instead of all saves 50%+ of Phase 2 tokens.
 

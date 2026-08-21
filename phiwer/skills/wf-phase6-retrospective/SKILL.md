@@ -262,20 +262,21 @@ Remove `{specDir}/{feature-dir}/` directory if now empty.
 
 Delete `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json` — feature workflow is complete.
 
-### Step 12b: Offer Worktree Removal (if applicable)
+### Step 12b: Worktree Cleanup (if applicable)
 
-If `worktreePath` was present in the context file (read in Step 1 or from context loaded earlier):
+If `worktreePath` was present in the context file (read in Step 1 or from context loaded
+earlier), this feature used Claude Code's native worktree mechanism — cleanup is automatic
+(a clean worktree is removed on session exit; abandoned ones are swept periodically), so no
+action is needed by default.
 
-Use AskUserQuestion:
-- header: "Remove git worktree?"
-- question: "The feature was developed in a worktree at `{worktreePath}`. Remove it now?"
-- option1: label="Yes — remove worktree", description="Runs: git worktree remove \"{worktreePath}\""
-- option2: label="No — keep it", description="Leave the worktree in place"
+If you're currently operating within the worktree and want to leave it immediately rather than
+wait for automatic cleanup, use AskUserQuestion:
+- header: "Exit worktree now?"
+- question: "Feature complete. Exit the worktree at `{worktreePath}` now via ExitWorktree, or leave it for Claude Code's automatic cleanup to handle?"
+- option1: label="Yes — exit now", description="Uses the ExitWorktree tool; a clean worktree is removed automatically on exit"
+- option2: label="No — leave it", description="Automatic cleanup will remove it later; no action needed"
 
-If user selects "Yes":
-```bash
-git worktree remove "{worktreePath}"
-```
+If user selects "Yes — exit now", use the **`ExitWorktree`** tool.
 
 Then use AskUserQuestion:
 - header: "Delete feature branch?"

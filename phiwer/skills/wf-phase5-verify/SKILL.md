@@ -2,7 +2,7 @@
 name: wf-phase5-verify
 description: Run Phase 5 verification after implementation - verify spec was implemented correctly, check tests pass, document any deviations. Produces PHASE5_VERIFICATION.md.
 argument-hint: [spec-file-path]
-allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion
 model: sonnet
 ---
 
@@ -50,24 +50,48 @@ Read:
 3. The Phase 4 implementation record (`{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md`), if present — use its deviations list as the handoff rather than reconstructing it
 4. CLAUDE.md for implementation context
 
-### Step 3: Build and Run the FULL Test Suite
+### Step 3: Delegate the FULL Test Suite Run to a Subagent
 
-Run the project's **entire** test suite — every test, not a hand-picked subset. Check CLAUDE.md for the project-specific command.
+Test output — especially failures, with full stack traces — is verbose, and running it inline
+would put all of that directly into this session's context for no benefit once you have the
+result. Spawn a subagent (via Task) to run the suite and report back only a structured summary.
 
-```bash
-# Run the ENTIRE suite. Do NOT scope to specific classes/files.
-# mvn test          (NOT: mvn test -Dtest=SomeClass)
-# npm test          (NOT: vitest run path/to.spec --testNamePattern=...)
-# pytest            (NOT: pytest tests/test_foo.py::test_bar)
-```
+**Always run the full suite; never let the Phase 5 verdict rest on a targeted run** (`-Dtest=`,
+`pytest …::…`, `.only`, a single spec file). A targeted run only proves the tests you *thought
+to name* still pass — it cannot catch regressions in classes you didn't think to run, which is
+exactly where they hide. The risk is highest for the changes Phase 5 is least suspicious of: a
+**constraint removal** or any behaviour change has a regression surface of "every test that
+exercised the old behaviour," and that set is precisely the one you won't hand-pick. This
+constraint must survive delegation — put it directly in the subagent's brief, not just in your
+own instructions, since the subagent is a fresh context with no memory of why it matters.
 
-**Always run the full suite; never let the Phase 5 verdict rest on a targeted run** (`-Dtest=`, `pytest …::…`, `.only`, a single spec file). A targeted run only proves the tests you *thought to name* still pass — it cannot catch regressions in classes you didn't think to run, which is exactly where they hide. The risk is highest for the changes Phase 5 is least suspicious of: a **constraint removal** or any behaviour change has a regression surface of "every test that exercised the old behaviour," and that set is precisely the one you won't hand-pick.
+> Precedent — why this rule exists: TRA-1466 removed an override that forced pipeline reports to
+> `DATA` content. A targeted Phase 5 run of two hand-picked classes passed and the feature was
+> declared verified, but a stale test in an *unrun* class still asserted the old "forced to
+> DATA" contract. Only CI (full suite) caught it, after Phase 5 had signed off.
 
-> Precedent — why this rule exists: TRA-1466 removed an override that forced pipeline reports to `DATA` content. A targeted Phase 5 run of two hand-picked classes passed and the feature was declared verified, but a stale test in an *unrun* class still asserted the old "forced to DATA" contract. Only CI (full suite) caught it, after Phase 5 had signed off.
+Spawn a general-purpose subagent with this brief:
 
-A targeted run is fine **while iterating** to get fast feedback, but the verdict in Step 6 must be backed by one clean **full-suite** run, and the verification document must record the full-suite totals (not a subset).
+> Run the project's **entire** test suite — every test, not a hand-picked subset. Check
+> CLAUDE.md for the project-specific command (e.g. `mvn test`, `npm test`, `pytest`). **Never**
+> scope to specific classes/files (`-Dtest=`, `pytest …::…`, `.only`, a single spec file) — a
+> targeted run only proves the tests you thought to name still pass and cannot catch regressions
+> in classes you didn't think to run. [Precedent: TRA-1466 — a targeted 2-class run passed while
+> a stale test in an unrun class still asserted a removed contract; only the full suite caught
+> it.] A targeted run is fine while you're iterating to get fast feedback, but your final report
+> must be backed by one clean full-suite run.
+>
+> Report back concisely, not the raw log:
+> - The test runner's own summary line verbatim (e.g. "Tests run: 340, Failures: 0, Errors: 0")
+> - Total tests run, passed, failed
+> - Any new test classes added (names only)
+> - For each failure: test name + the assertion/error message (not the full stack trace unless
+>   it's needed to explain what broke)
 
-Capture (from the full-suite run):
+Use the subagent's structured summary for the rest of this phase — do not re-run the suite
+inline in the main session, and do not ask the subagent to paste its raw output back to you.
+
+Capture (from the subagent's summary):
 - Total tests run
 - Tests passed/failed
 - Any new test classes added

@@ -44,7 +44,7 @@ If no spec path was provided:
    - **Reconcile before trusting it.** The on-disk artifacts are the source of truth; the context file is only a cache a prior phase may have failed to update (interrupted, errored, or you took over manually). Before relying on `lastPhase`, check it against reality — the spec `Status`, which `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE*.md` documents exist, and whether the implementation and tests are present. If they disagree, **trust the artifacts**, tell the user about the drift, and rewrite the context to match before continuing.
 2. Check the context file for recent context (within 24 hours, `lastPhase=wf-phase3-consolidate`)
 3. If valid context found, ask user if they want to continue with it
-   - **Worktree note**: If `worktreePath` is set in the context, note this to the user and display the worktree path. Implementation should run from that directory.
+   - **Worktree note**: If `worktreePath` is set in the context, this feature uses Claude Code's native worktree mechanism. If you're not already operating within it (check your current working directory against `worktreePath`), use the **`EnterWorktree`** tool to enter it before doing anything else this phase — implementation must happen there, not in the main checkout.
 4. Otherwise, use Glob to find specs: `{specDir}/*/*.md`
 5. Filter for `*_SPEC.md` files with Phase 3 consolidation but no Phase 5 verification
 6. If multiple eligible specs, use AskUserQuestion to select one

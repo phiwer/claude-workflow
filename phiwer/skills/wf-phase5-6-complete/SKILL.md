@@ -2,7 +2,7 @@
 name: wf-phase5-6-complete
 description: Combined Phase 5+6 - verify implementation and write retrospective in one session. Saves ~4-6K tokens by avoiding context reload.
 argument-hint: [spec-file-path]
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion
 model: sonnet
 ---
 
@@ -58,22 +58,43 @@ Read:
    have split path-scoped rule content out of CLAUDE.md, and both Part B's "does CLAUDE.md
    already cover this" check and Step 11's optimization pass need the full picture
 
-### Step 3: Build and Run the FULL Test Suite
+### Step 3: Delegate the FULL Test Suite Run to a Subagent
 
-Run the project's **entire** test suite — every test, not a hand-picked subset. Check CLAUDE.md for the project-specific command.
+Test output — especially failures, with full stack traces — is verbose, and running it inline
+would put all of that directly into this session's context for no benefit once you have the
+result. Spawn a subagent (via Task) to run the suite and report back only a structured summary.
 
-```bash
-# Run the ENTIRE suite. Do NOT scope to specific classes/files.
-# mvn test (NOT: mvn test -Dtest=SomeClass) — npm test — pytest
-```
-
-**Always run the full suite; never let the Phase 5 verdict rest on a targeted run** (`-Dtest=`, `pytest …::…`, `.only`, a single spec file). A targeted run only proves the tests you *thought to name* still pass — it cannot catch regressions in classes you didn't think to run. The risk is highest for the changes Phase 5 is least suspicious of: a **constraint removal** or behaviour change has a regression surface of "every test that exercised the old behaviour," which is exactly the set you won't hand-pick.
+**Always run the full suite; never let the Phase 5 verdict rest on a targeted run** (`-Dtest=`,
+`pytest …::…`, `.only`, a single spec file). A targeted run only proves the tests you *thought
+to name* still pass — it cannot catch regressions in classes you didn't think to run. The risk
+is highest for the changes Phase 5 is least suspicious of: a **constraint removal** or behaviour
+change has a regression surface of "every test that exercised the old behaviour," which is
+exactly the set you won't hand-pick. This constraint must survive delegation — put it directly
+in the subagent's brief, not just in your own instructions.
 
 > Precedent — why this rule exists: TRA-1466 removed an override forcing pipeline reports to `DATA` content. A targeted Phase 5 run of two hand-picked classes passed, but a stale test in an *unrun* class still asserted the old contract; only CI (full suite) caught it after Phase 5 signed off.
 
-A targeted run is fine **while iterating**, but the verdict must be backed by one clean **full-suite** run, and the document must record the full-suite totals.
+Spawn a general-purpose subagent with this brief:
 
-Capture (from the full-suite run):
+> Run the project's **entire** test suite — every test, not a hand-picked subset. Check
+> CLAUDE.md for the project-specific command (e.g. `mvn test`, `npm test`, `pytest`). **Never**
+> scope to specific classes/files — a targeted run only proves the tests you thought to name
+> still pass and cannot catch regressions in unrun classes. [Precedent: TRA-1466 — a targeted
+> 2-class run passed while a stale test in an unrun class still asserted a removed contract;
+> only the full suite caught it.] A targeted run is fine while iterating, but your final report
+> must be backed by one clean full-suite run.
+>
+> Report back concisely, not the raw log:
+> - The test runner's own summary line verbatim
+> - Total tests run, passed, failed
+> - Any new test files added (names only)
+> - For each failure: test name + the assertion/error message (not the full stack trace unless
+>   needed to explain what broke)
+
+Use the subagent's structured summary for the rest of this phase — do not re-run the suite
+inline in the main session.
+
+Capture (from the subagent's summary):
 - Total tests run
 - Tests passed/failed
 - Any new test files added

@@ -35,7 +35,8 @@ Read `.claude/workflow/project-config.json`. Extract:
 - `specDir` (default: `docs/specs`)
 - `archiveDir` (default: `docs/specs/archive`)
 - `roadmapFile` (default: `ROADMAP.md`)
-- `worktreeBase` (default: `null`)
+- `worktreesEnabled` (default: `false`) — whether to use Claude Code's native worktree
+  mechanism (`EnterWorktree`) for this feature.
 
 Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` → `GIT_MAIN_ROOT`.
 
@@ -129,7 +130,6 @@ Write `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
   "lastPhase": "wf-phase1-spec-haiku",
   "specDir": "{specDir}",
   "archiveDir": "{archiveDir}",
-  "worktreeBase": "{worktreeBase or null}",
   "context": {
     "complexityTier": "{Spike | Simple}",
     "complexityJustification": "{brief reason}",
@@ -151,24 +151,26 @@ TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scri
 [ -n "$TU" ] && python3 "$TU" --phase wf-phase1-spec-haiku --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}" || echo "token-usage: script not found, skipping (best-effort)"
 ```
 
-### 9b: Create git worktree (if configured)
+### 9b: Create git worktree (if enabled)
 
-If `worktreeBase` is non-null:
+If `worktreesEnabled` is `true` in project-config.json:
 
-1. Derive project dir name from last path component of `GIT_MAIN_ROOT`
-2. Compute feature ID in lowercase (e.g., `SF-14` → `sf-14`)
-3. Run:
-   ```bash
-   git worktree add "{worktreeBase}/{project-dir-name}-{feature-id-lowercase}" -b "feature/{feature-id-lowercase}"
+1. Compute feature ID in lowercase (e.g., `SF-14` → `sf-14`) as the worktree name.
+2. Use the **`EnterWorktree`** tool to create/enter a worktree named `{feature-id-lowercase}` —
+   Claude Code's native worktree mechanism: creates it at `.claude/worktrees/{feature-id-lowercase}/`
+   by default, and blocks any Edit/Write/Bash call that targets the main checkout from this
+   point on.
+3. Read back the actual worktree path and branch name the tool reports and add to context file:
+   - `"worktreePath": "{path the tool reports}"`
+   - `"branchName": "{branch the tool reports}"`
+4. Display:
    ```
-4. Add to context file:
-   - `"worktreePath": "{worktreeBase}/{project-dir-name}-{feature-id-lowercase}"`
-   - `"branchName": "feature/{feature-id-lowercase}"`
-5. Display:
-   ```
-   Git worktree created: {worktreePath}
+   Entered worktree: {worktreePath}
    Branch: {branchName}
-   Implementation phases will run from this directory.
+
+   To resume work on this feature in a later session, start with:
+     claude --worktree {feature-id-lowercase}
+   Cleanup is automatic — no manual removal needed.
    ```
 
 ### 9c: Next steps
