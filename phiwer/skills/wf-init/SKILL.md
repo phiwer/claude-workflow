@@ -279,8 +279,8 @@ Display:
 - /wf-phase1-iterate    Quick pre-review of a DRAFT spec
 - /wf-phase2-review     Full design review with selected agents
 - /wf-phase3-consolidate Address feedback, finalize spec
-- /wf-phase4-implement  Implement the feature (Opus, thorough)
-- /wf-phase4-implement-sonnet  Implement (Sonnet, faster)
+- /wf-phase4-implement-sonnet  Implement the feature (Sonnet, default)
+- /wf-phase4-implement  Implement (Opus) — explicit opt-in for tickets flagged high-stakes
 - /wf-phase5-verify     Verify implementation matches spec
 - /wf-phase5-6-complete Verify + retrospective in one session
 - /wf-phase6-retrospective Document lessons learned
