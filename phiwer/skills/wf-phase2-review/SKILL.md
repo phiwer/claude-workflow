@@ -1,7 +1,7 @@
 ---
 name: wf-phase2-review
 description: Run Phase 2 design review with 2-6 subagents (dynamic selection). Produces a PHASE2_REVIEW.md artifact in the archive directory.
-model: opus
+model: sonnet
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion, Bash
 ---

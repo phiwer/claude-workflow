@@ -103,7 +103,7 @@ To generate an agent file, write `.claude/agents/{name}.md` with this structure:
 name: {agent-name}
 description: {agent focus area — used to decide relevance in phase2 agent selection}
 tools: Read, Glob, Grep
-model: opus
+model: sonnet
 ---
 
 # {Agent Role} Review Agent

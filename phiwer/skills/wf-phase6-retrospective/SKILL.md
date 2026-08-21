@@ -3,7 +3,7 @@ name: wf-phase6-retrospective
 description: Run Phase 6 retrospective - document lessons learned, what went well, what could improve. Produces PHASE6_RETROSPECTIVE.md and updates project docs.
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion
-model: opus
+model: sonnet
 ---
 
 # Phase 6: Retrospective

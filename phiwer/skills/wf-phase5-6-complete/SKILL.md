@@ -3,7 +3,7 @@ name: wf-phase5-6-complete
 description: Combined Phase 5+6 - verify implementation and write retrospective in one session. Saves ~4-6K tokens by avoiding context reload.
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, AskUserQuestion
-model: opus
+model: sonnet
 ---
 
 # Phase 5+6: Verification & Retrospective (Combined)

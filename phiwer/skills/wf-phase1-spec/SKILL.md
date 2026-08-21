@@ -89,7 +89,7 @@ Create `{specDir}/{feature-dir}/{FEATURE-ID}_{NAME}_SPEC.md`.
 
 **Status**: DRAFT
 **Created**: {date}
-**Complexity**: {Simple | Medium | Complex}
+**Complexity**: {Spike | Simple | Medium | Complex}
 
 ---
 
@@ -103,14 +103,23 @@ resolves there.
 
 ## Complexity Tier
 
-**Tier**: {Simple | Medium | Complex}
+**Tier**: {Spike | Simple | Medium | Complex}
 **Justification**: {Why this tier - be specific}
 
 | Tier | Criteria | Recommended Phases |
 |------|----------|-------------------|
+| Spike | Exploratory/de-risking work — the branch name, ticket, or user's description says "spike", "poc", "explore", or the goal is to de-risk an unknown rather than ship production-grade code | 1 → 4 (sonnet) → 5 |
 | Simple | Single pattern, <100 LOC, follows existing templates | 1 → 4 → 5 |
 | Medium | 2-5 files, follows existing patterns, some integration | 1 → 2 (3 agents) → 3 → 4 → 5 |
 | Complex | New patterns, architecture, 5+ files, novel mechanics | 1 → (1.5) → 2 → 3 → 4 → 5 → 6 |
+
+**Spike is not "Complex work done carelessly."** It's a distinct signal — the goal is answering
+a question or de-risking an unknown, not shipping a fully reviewed production feature — so it
+skips the design-review and consolidation ceremony (Phases 2/3) even when the code itself would
+otherwise look architecturally novel enough to qualify as Complex. If mid-implementation the
+spike's outcome turns into "ship this for real," treat that as scope change: stop, and re-run
+`/wf-phase1-spec` (or hand-consolidate) at the appropriate tier for the production version rather
+than retrofitting review onto the spike's spec after the fact.
 
 ---
 
@@ -254,7 +263,7 @@ Write `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
   "archiveDir": "{archiveDir}",
   "worktreeBase": "{worktreeBase or null}",
   "context": {
-    "complexityTier": "{Simple | Medium | Complex}",
+    "complexityTier": "{Spike | Simple | Medium | Complex}",
     "complexityJustification": "{brief reason}",
     "components": ["{component names}"],
     "openQuestions": {count},
@@ -297,6 +306,14 @@ If `worktreeBase` is non-null:
 ### 9c: Next steps
 
 Display based on `complexityTier`:
+
+**Spike:**
+> Phase 1 complete. Context saved.
+>
+> **Next**: Start a new session and run `/wf-phase4-implement-sonnet` — context will auto-load.
+> This tier skips design review/consolidation by design (exploratory work) — rely on PMD/tests
+> as the gate. If the spike turns into shipped production work, treat that as a scope change
+> rather than retrofitting review after the fact.
 
 **Simple:**
 > Phase 1 complete. Context saved.

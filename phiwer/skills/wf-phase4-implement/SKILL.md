@@ -1,6 +1,6 @@
 ---
 name: wf-phase4-implement
-description: Phase 4 implementation (Opus) - thorough implementation with detailed analysis. Use /wf-phase4-implement-sonnet for faster implementation.
+description: Phase 4 implementation (Opus) - explicit opt-in for tickets flagged high-stakes or architecturally novel. Defaults everywhere else to /wf-phase4-implement-sonnet, which is meaningfully cheaper for the same phase.
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion
 model: opus
@@ -10,7 +10,11 @@ model: opus
 
 Implement a feature according to its specification and Phase 3 consolidation decisions.
 
-**For faster implementation**: Use `/wf-phase4-implement-sonnet` instead.
+**This is the explicit opt-in, not the default.** Use this only for a ticket you've deliberately
+flagged high-stakes or architecturally novel. For everything else — including most Complex-tier
+work — use `/wf-phase4-implement-sonnet`. On three tracked Complex-tier features that defaulted
+to this Opus path, Phase 4 alone cost 142M-259M tokens each; a comparable Simple-tier run on
+Sonnet cost ~14M. If you're not sure which to pick, pick Sonnet.
 
 ## Spec to Implement
 
@@ -93,6 +97,28 @@ Follow the spec precisely:
 
 **Deviations**: If at any point the implementation diverges from the spec, document it immediately — what the spec said, what you're doing instead, and why. Add it to the Step 8 summary as you go; don't try to reconstruct it at the end.
 
+### Step 5.5: Checkpoint Large Implementations
+
+Long single sessions are the dominant cost driver in this phase — Claude Code resends the full
+accumulated conversation on every turn, so token cost compounds with cumulative turns, not with
+the amount of new work done. On one tracked feature, 89% of Phase 4's entire token cost sat in
+the main session alone, driven by running the whole Migration Plan (dozens of commits) as one
+unbroken conversation.
+
+After every 3-5 commits, or whenever a natural unit of the Migration Plan is complete:
+
+1. Write a compact checkpoint note (not committed — just displayed): which Migration Plan steps
+   are done, which remain, any open deviations, current test status.
+2. Tell the user this is a natural checkpoint and suggest starting a fresh session (e.g. `/clear`)
+   and resuming with: "Continue implementing {FEATURE-ID} from this checkpoint: {paste the note}"
+   plus the spec/consolidation paths — rather than continuing in the same, ever-growing context.
+3. This is guidance, not a hard stop — if the user chooses to continue in the same session
+   anyway, proceed.
+
+Apply the same discipline immediately before Step 6.5 (the review loop): that loop's re-reads
+compound the problem further, so a checkpoint right before spawning the first reviewer pass is
+worth suggesting even if none was taken during implementation.
+
 ### Step 6: Run Tests
 
 Run the project's test suite (see CLAUDE.md or project docs for specific commands):
@@ -115,7 +141,7 @@ spec-completeness checks and a passing test suite do not.
 This step is **project-agnostic**: the rules come from the project (its `CLAUDE.md` and agent
 "Constitution Alignment" sections), never from this skill. The same loop works in any project.
 
-1. **Build the review diff.** Collect the changed code:
+1. **Build the review diff (pass 1).** Collect the changed code:
    - Determine the base branch:
      ```
      BASE=$(git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/@@')
@@ -131,16 +157,26 @@ This step is **project-agnostic**: the rules come from the project (its `CLAUDE.
    Pass it the review diff (or the changed-file list if the diff is large).
 
 3. **Read the structured findings** and **fix every MUST-FIX**. Fold each fix into the commit of
-   the code it corrects — do not create a separate "fix violations" commit.
+   the code it corrects — do not create a separate "fix violations" commit. Note the commit SHA
+   before you started fixing (`git rev-parse HEAD`) — you need it for step 4.
 
-4. **Re-spawn the reviewer** on the updated diff. Repeat **until the verdict is CLEAN (zero
-   MUST-FIX) or 3 passes have run.**
+4. **If a second pass is needed, scope it to what changed.** Build a new diff covering only the
+   fix commits (`git diff {sha-from-step-3}...HEAD`) — not the full cumulative branch diff again.
+   Pass 1 already cleared everything outside those lines; re-reviewing it all a second time is
+   the single largest avoidable cost in this loop — on one tracked feature this whole step was
+   89% of the phase's token cost. Spawn a fresh reviewer subagent against just the scoped diff.
 
-5. If any code changed during fixes, re-run the project's static-analysis and test commands (see
+5. **Cap at 2 passes total.** If pass 2's scoped review is not CLEAN, **stop — do not run a third
+   pass.** A pass whose findings are never re-verified isn't earning its cost; a prior run of this
+   workflow silently exhausted a 3-pass cap without ever confirming its final fixes were clean.
+   Report the remaining MUST-FIX items to the user directly and loudly (not buried in the Step 8
+   summary) so a human decides how to proceed.
+
+6. If any code changed during fixes, re-run the project's static-analysis and test commands (see
    CLAUDE.md) and confirm they pass.
 
-6. If MUST-FIX items remain after 3 passes, **stop and report them to the user** rather than
-   looping further. Carry residual NITs and the pass count into the Step 8 summary.
+7. Carry the pass count and verdict (CLEAN, or the residual MUST-FIX list handed to the user)
+   into the Step 8 summary.
 
 #### Generic Reviewer Brief
 

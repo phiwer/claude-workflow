@@ -1,7 +1,7 @@
 ---
 name: wf-phase1-iterate
 description: Phase 1 iteration - quick 3-agent review of a DRAFT spec before formal Phase 2 review. Catches issues early with specialized perspectives.
-model: opus
+model: sonnet
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion, Bash
 ---

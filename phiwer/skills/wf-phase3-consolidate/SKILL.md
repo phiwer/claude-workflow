@@ -1,7 +1,7 @@
 ---
 name: wf-phase3-consolidate
 description: Run Phase 3 consolidation - address Phase 2 feedback, make decisions on open questions, update the spec. Produces PHASE3_CONSOLIDATION.md.
-model: opus
+model: sonnet
 argument-hint: [spec-file-path]
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash
 ---
@@ -235,8 +235,10 @@ ruleset, iterated until clean. Project-agnostic: the rules come from the project
 2. **Spawn a fresh reviewer subagent (via Task)** — do not review your own output inline. Use
    `.claude/agents/compliance-reviewer.md` if it exists, otherwise a general-purpose agent with the
    **Generic Reviewer Brief** below. Pass it the list of interface file paths.
-3. **Fix every MUST-FIX**. Re-spawn the reviewer on the updated files. Repeat **until CLEAN or 3
-   passes**. If MUST-FIX items remain after 3 passes, stop and report them to the user.
+3. **Fix every MUST-FIX**. Re-spawn the reviewer on the updated files. **Cap at 2 passes total.**
+   If pass 2 is not CLEAN, stop — do not run a third pass whose fixes are never re-verified —
+   and report the remaining MUST-FIX items to the user directly and loudly so a human decides
+   how to proceed.
 
 ##### Generic Reviewer Brief (interface/contract review)
 
@@ -323,16 +325,13 @@ If interface files were created in Step 7, display:
 
 Otherwise, read `complexityTier` from `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json` and display:
 
-**Simple or Medium tier** — display:
+**Simple, Medium, or Complex tier** — display:
 > Phase 3 complete. Context saved.
 >
 > **Next**: Start a new session and run `/wf-phase4-implement-sonnet` — context will auto-load.
-> (For a more thorough Opus implementation, run `/wf-phase4-implement` instead.)
-
-**Complex tier** — display:
-> Phase 3 complete. Context saved.
->
-> **Next**: Start a new session and run `/wf-phase4-implement` (Opus) — context will auto-load.
-> (For faster implementation at the cost of depth, use `/wf-phase4-implement-sonnet`.)
+> (Opus is available via `/wf-phase4-implement` for tickets you've explicitly flagged
+> high-stakes or architecturally novel — it costs meaningfully more. Three tracked Complex-tier
+> features that defaulted to Opus averaged 150-335M tokens for Phase 4 alone; a comparable
+> Simple-tier run on Sonnet cost ~14M. Default to Sonnet unless you have a specific reason not to.)
 
 Do NOT offer next-phase navigation via AskUserQuestion. The user must manually start a new session.
