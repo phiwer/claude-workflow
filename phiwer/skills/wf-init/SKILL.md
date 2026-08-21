@@ -214,6 +214,7 @@ each of these entries to the `allow` array if not already present:
 
 ```
 "Skill(wf-init)"
+"Skill(wf-plan)"
 "Skill(wf-phase1-spec)"
 "Skill(wf-phase1-spec-haiku)"
 "Skill(wf-phase1-iterate)"
@@ -284,11 +285,12 @@ Display:
   Phase 6)
 
 ### Available commands
-- /wf-phase1-spec       Create a feature spec from the roadmap (Sonnet, default)
-- /wf-phase1-spec-haiku Create a spec (Haiku) — only when the pattern is obviously template-following
-- /wf-phase1-iterate    Quick pre-review of a DRAFT spec
-- /wf-phase2-review     Full design review with selected agents
-- /wf-phase3-consolidate Address feedback, finalize spec
+- /wf-plan               Plan a feature (default) — one live session, collapses spec+review+consolidate into one for tickets that fit
+- /wf-phase1-spec        Full pipeline Phase 1 — for genuine outliers /wf-plan's own gate flags as too large, or when you already know upfront a feature is architecturally novel
+- /wf-phase1-spec-haiku  Create a spec (Haiku) — only when the pattern is obviously template-following
+- /wf-phase1-iterate     Quick pre-review of a DRAFT spec (full pipeline only)
+- /wf-phase2-review      Full design review with selected agents (full pipeline only)
+- /wf-phase3-consolidate Address feedback, finalize spec (full pipeline only)
 - /wf-phase4-implement-sonnet  Implement the feature (Sonnet, default)
 - /wf-phase4-implement  Implement (Opus) — explicit opt-in for tickets flagged high-stakes
 - /wf-phase5-6-complete Verify + retrospective in one session (default — use this)

@@ -40,7 +40,9 @@ If no spec path was provided:
    - **Reconcile before trusting it.** The on-disk artifacts are the source of truth; the context file is only a cache a prior phase may have failed to update (interrupted, errored, or you took over manually). Before relying on `lastPhase`, check it against reality — the spec `Status`, which `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE*.md` documents exist, and whether the implementation and tests are present. If they disagree, **trust the artifacts**, tell the user about the drift, and rewrite the context to match before continuing.
 2. Use Glob to find active specs: `{specDir}/*/*.md`
 3. Filter for `*_SPEC.md` files with Status: "READY FOR IMPLEMENTATION" or "IMPLEMENTED"
-4. Check which specs have PHASE3_CONSOLIDATION.md but no PHASE5_VERIFICATION.md
+4. Check which of those have no PHASE5_VERIFICATION.md yet. A Phase 3 consolidation doc is not
+   required — a `/wf-plan`-originated spec reaches `READY FOR IMPLEMENTATION` via live
+   consolidation and never produces one.
 5. If multiple found, use AskUserQuestion to ask which to verify
 
 ---

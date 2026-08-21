@@ -1,7 +1,7 @@
 {
   "name": "phiwer",
-  "description": "A structured 6-phase feature development workflow (spec → review → consolidate → implement → verify → retrospective)",
-  "version": "1.2.0",
+  "description": "A structured feature development workflow - /wf-plan (one live session) by default, or a full spec -> review -> consolidate -> implement -> verify -> retrospective pipeline for genuine outliers",
+  "version": "1.3.0",
   "author": {
     "name": "phiwer",
     "url": "https://github.com/phiwer"

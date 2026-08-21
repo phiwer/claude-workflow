@@ -125,6 +125,17 @@ and produces the final specification for implementation.
 
 ---
 
+## Decisions Requiring Your Judgment
+
+A one-line-each triage of the decisions below, for a reader who doesn't need the full rationale
+for every one — read this first; skip to the detailed decision only for the ones that matter to
+you. A large consolidation with many decisions is exactly the case a full read doesn't scale to.
+
+1. **{Decision title}** — {one clause: what was decided, and how confident/risky it is}. See
+   Decision {N} below for full rationale.
+
+---
+
 ## Critical Decisions
 
 ### Decision 1: {Issue Title} ✅

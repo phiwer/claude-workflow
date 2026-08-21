@@ -38,15 +38,20 @@ If no spec path was provided:
    - **Reconcile before trusting it.** The on-disk artifacts are the source of truth; the context file is only a cache a prior phase may have failed to update (interrupted, errored, or you took over manually). Before relying on `lastPhase`, check it against reality — the spec `Status`, which `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE*.md` documents exist, and whether the implementation and tests are present. If they disagree, **trust the artifacts**, tell the user about the drift, and rewrite the context to match before continuing.
 2. Use Glob to find active specs: `{specDir}/*/*.md`
 2. Filter for `*_SPEC.md` files with Status: "READY FOR IMPLEMENTATION" or similar
-3. Check which specs have PHASE3_CONSOLIDATION.md but no PHASE5_VERIFICATION.md
+3. Check which of those have no PHASE5_VERIFICATION.md yet. A Phase 3 consolidation doc is not
+   required — a `/wf-plan`-originated spec reaches `READY FOR IMPLEMENTATION` via live
+   consolidation and never produces one.
 4. If multiple found, use AskUserQuestion to ask which to verify
-5. If a spec has no Phase 3 consolidation, warn and suggest running `/wf-phase3-consolidate` first
+5. If a spec's Status is still DRAFT (consolidation never happened at all), warn and suggest
+   running `/wf-phase3-consolidate` (full pipeline) or `/wf-plan` (if no spec exists yet)
 
 ### Step 2: Read Required Documents
 
 Read:
 1. The main spec file
-2. The Phase 3 consolidation document
+2. The Phase 3 consolidation document, if it exists — otherwise the spec's own "Decisions
+   Requiring Your Judgment" section (a `/wf-plan`-originated spec never produces a separate
+   Phase 3 document)
 3. The Phase 4 implementation record (`{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md`), if present — use its deviations list as the handoff rather than reconstructing it
 4. CLAUDE.md for implementation context
 

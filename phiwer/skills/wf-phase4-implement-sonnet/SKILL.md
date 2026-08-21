@@ -42,20 +42,26 @@ If no spec path was provided:
 
 1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, use it as the context file.
    - **Reconcile before trusting it.** The on-disk artifacts are the source of truth; the context file is only a cache a prior phase may have failed to update (interrupted, errored, or you took over manually). Before relying on `lastPhase`, check it against reality — the spec `Status`, which `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE*.md` documents exist, and whether the implementation and tests are present. If they disagree, **trust the artifacts**, tell the user about the drift, and rewrite the context to match before continuing.
-2. Check the context file for recent context (within 24 hours, `lastPhase=wf-phase3-consolidate`)
+2. Check the context file for recent context (within 24 hours, `lastPhase` is `wf-phase3-consolidate`
+   **or** `wf-plan` — the latter consolidates live in one session and hands off directly here)
 3. If valid context found, ask user if they want to continue with it
    - **Worktree note**: If `worktreePath` is set in the context, this feature uses Claude Code's native worktree mechanism. If you're not already operating within it (check your current working directory against `worktreePath`), use the **`EnterWorktree`** tool to enter it before doing anything else this phase — implementation must happen there, not in the main checkout.
 4. Otherwise, use Glob to find specs: `{specDir}/*/*.md`
-5. Filter for `*_SPEC.md` files with Phase 3 consolidation but no Phase 5 verification
+5. Filter for `*_SPEC.md` files with `Status: READY FOR IMPLEMENTATION` (whether via a Phase 3
+   consolidation doc or `/wf-plan`'s live consolidation) but no Phase 5 verification
 6. If multiple eligible specs, use AskUserQuestion to select one
 
-Validate Phase 3 is complete before proceeding.
+Validate consolidation is complete before proceeding: either a Phase 3 consolidation doc exists,
+or the spec's own `Status` is already `READY FOR IMPLEMENTATION` (a `/wf-plan` spec never
+produces a separate Phase 3 document).
 
 ### Step 2: Read Documents
 
 Read:
 1. Main spec file
-2. Phase 3 consolidation
+2. Phase 3 consolidation, if it exists — otherwise the spec's own "Decisions Requiring Your
+   Judgment" section, which carries the equivalent "what was decided and why" for a spec
+   consolidated live via `/wf-plan`
 3. CLAUDE.md (skim for patterns)
 
 ### Step 3: Implement

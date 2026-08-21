@@ -1,21 +1,30 @@
 ---
 name: wf-phase1-spec
-description: Phase 1 - Create an initial feature specification. Pass the feature ID and your description as arguments (with any images attached). Explores the codebase and generates a structured spec. Use /wf-phase1-spec-haiku instead for a feature that clearly repeats an existing pattern.
+description: Phase 1 - the full, multi-session reviewed pipeline (1 -> 1.5 -> 2 -> 3). Use /wf-plan instead by default - it's a single live session that handles most tickets; reserve this for genuine outliers /wf-plan's own gate flags as too large for one sitting, or when you already know upfront a feature is architecturally novel or requirements are genuinely unclear.
 argument-hint: [feature-id] [your description of what the feature should do]
-allowed-tools: Read, Glob, Grep, Bash, Write
+allowed-tools: Read, Glob, Grep, Bash, Write, Task
 model: sonnet
 ---
 
 <!--
+SYNC NOTE: this file shares its spec template with wf-plan and wf-phase1-spec-haiku. The
+following must stay byte-identical across all three: the "Decisions Requiring Your Judgment"
+section, the rest of the spec template body, the context.json base schema
+(specPath/featureId/specDir/archiveDir/context block shape), and the token-ledger invocation
+shape (--ledger/--ticket flags). If you change one, change all three or note explicitly why
+this file deliberately diverges.
+
 Model Selection Guide:
-- Use Sonnet (this command, default) for novel features or unclear requirements
-- Use /wf-phase1-spec-haiku instead when the pattern is obvious before you start — a feature
-  that clearly repeats an existing, already-implemented shape. Any gaps get caught by Phase 2
-  agents anyway, but that's expensive insurance to lean on routinely — the Haiku variant exists
-  for the genuinely-obvious case, not as a default.
+- Default to /wf-plan for most tickets — one live session, human reviews only the judgment-tier
+  decisions, not the whole document. See its own SKILL.md for why.
+- Use this command (Sonnet) when you already know upfront a feature is architecturally novel,
+  requirements are genuinely unclear, or /wf-plan's own Step 7.5 gate already told you the spec
+  grew too large for one session.
+- Use /wf-phase1-spec-haiku instead of either when the pattern is obvious before you start — a
+  feature that clearly repeats an existing, already-implemented shape.
 -->
 
-# Phase 1: Write Feature Specification
+# Phase 1: Write Feature Specification (full pipeline)
 
 ## Input
 
@@ -42,12 +51,18 @@ Read `{roadmapFile}` and find the entry for the feature ID. Use any additional r
 
 ## Step 3: Gather codebase context
 
-Using the user's description as your guide:
+Prefer parallel research over researching alone:
 
-1. Read `CLAUDE.md` to understand existing patterns and implemented features
-2. Check for reference documentation in the repo (e.g., `docs/`, `references/`)
-3. Review related existing specs in `{specDir}/` for format and patterns
-4. Check existing code for partial implementations or related systems
+1. Use Glob to list `.claude/agents/*.md`. For each found, read its `name:`/`description:`
+   frontmatter and reason about whether its focus area is relevant to this feature.
+2. For each relevant agent, formulate one specific, answerable question this feature needs
+   answered before drafting, and spawn all selected agents **in parallel** (single message,
+   multiple Task calls).
+3. If no agents are relevant or none exist, research directly instead:
+   - Read `CLAUDE.md` to understand existing patterns and implemented features
+   - Check for reference documentation in the repo (e.g., `docs/`, `references/`)
+   - Review related existing specs in `{specDir}/` for format and patterns
+   - Check existing code for partial implementations or related systems
 
 ## Step 4: Analyze dependencies
 
@@ -72,8 +87,8 @@ gap was not flagging that it hadn't been.
 
 If the spec's design hinges on any claim you have NOT directly verified against source — not
 "this is probably how it works" but specifically the load-bearing kind, where being wrong would
-change the design — set `hingesOnUnverifiedClaim: true` for Step 9a and list each such claim
-under a "Verification Status" section in the spec (Step 7). Otherwise set it `false`.
+change the design — set `hingesOnUnverifiedClaim: true` for Step 9a and list each such claim as
+an item in the "Decisions Requiring Your Judgment" section (Step 7). Otherwise set it `false`.
 
 ## Step 5: Create spec directory
 
@@ -145,13 +160,15 @@ than retrofitting review onto the spike's spec after the fact.
 
 ---
 
-## Verification Status (only if any unverified claim is load-bearing — omit otherwise)
+## Decisions Requiring Your Judgment
 
-**Confirmed** (directly verified against source/tests/actual behavior):
-- {claim} — {how it was verified}
+The load-bearing calls in this spec — unverified assumptions (see Step 4.5) and any real
+architectural tradeoff. This is the only section a human needs to read carefully; everything
+below is detail. Keep this to what genuinely needs a human call — file lists and standard test
+strategy don't belong here.
 
-**Assumed** (not directly verified — treat as risk if wrong):
-- {claim} — {why it's load-bearing; what would change if it's wrong}
+1. **{Decision title}** — {what's being decided, and why it's load-bearing: what changes in the
+   design if this is wrong}. {Confirmed against source, or: Assumed — not directly verified}.
 
 ---
 
@@ -368,8 +385,8 @@ Display based on `complexityTier`:
 
 **Complex, with `hingesOnUnverifiedClaim: true`:**
 > Phase 1 complete. Context saved. This spec's design hinges on a claim you haven't directly
-> verified (see "Verification Status") — that's exactly the shape of the two costliest
-> corrections on record for this workflow.
+> verified (see "Decisions Requiring Your Judgment") — that's exactly the shape of the two
+> costliest corrections on record for this workflow.
 >
 > **Next**: Start a new session and run `/wf-phase1-iterate` for a cheap early check before
 > committing Phase 2's larger review to a spec that might be built on a wrong premise. After

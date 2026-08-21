@@ -154,6 +154,18 @@ After all agents complete, create `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE
 
 ---
 
+## Decisions Requiring Your Judgment
+
+The critical issues below, triaged to the small number that actually need a human call before
+Phase 3 — read this section carefully; the full per-agent reviews that follow are reference
+detail, not something you need to read end to end. A large spec with many reviewer findings is
+exactly the case a full read doesn't scale to.
+
+1. **{Issue title}** — {which agent(s) raised it, and why it's load-bearing: what changes if
+   resolved one way vs. another}.
+
+---
+
 ## Review Process
 
 This document contains reviews from {count} specialized subagents analyzing the {FEATURE-ID}

@@ -43,24 +43,30 @@ If no spec path was provided:
 
 1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`. If multiple found, ask the user which feature to continue (AskUserQuestion). If one found, use it as the context file.
    - **Reconcile before trusting it.** The on-disk artifacts are the source of truth; the context file is only a cache a prior phase may have failed to update (interrupted, errored, or you took over manually). Before relying on `lastPhase`, check it against reality — the spec `Status`, which `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE*.md` documents exist, and whether the implementation and tests are present. If they disagree, **trust the artifacts**, tell the user about the drift, and rewrite the context to match before continuing.
-2. Check the context file for recent context (within 24 hours, lastPhase=wf-phase3-consolidate)
+2. Check the context file for recent context (within 24 hours, `lastPhase` is `wf-phase3-consolidate`
+   **or** `wf-plan` — the latter consolidates live in one session and hands off directly here)
 3. If valid context found, ask user if they want to continue with it
    - **Worktree note**: If `worktreePath` is set in the context, this feature uses Claude Code's native worktree mechanism. If you're not already operating within it (check your current working directory against `worktreePath`), use the **`EnterWorktree`** tool to enter it before doing anything else this phase — implementation must happen there, not in the main checkout.
 4. Otherwise, use Glob to find specs: `{specDir}/*/*.md`
-5. Filter for `*_SPEC.md` files with Phase 3 consolidation but no Phase 5 verification
+5. Filter for `*_SPEC.md` files with `Status: READY FOR IMPLEMENTATION` (whether via a Phase 3
+   consolidation doc or `/wf-plan`'s live consolidation) but no Phase 5 verification
 6. If multiple eligible specs, use AskUserQuestion to select one
 
 ### Step 2: Validate Phase
 
 Verify:
-1. `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE3_CONSOLIDATION.md` exists
+1. **Either** `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE3_CONSOLIDATION.md` exists **or**
+   the spec's own `Status` is already `READY FOR IMPLEMENTATION` — the latter covers a spec
+   that came from `/wf-plan`, which consolidates live in one session and never produces a
+   separate Phase 3 document.
 2. `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE5_VERIFICATION.md` does NOT exist
 
-If Phase 3 not complete:
+If neither condition in #1 is met:
 ```
-⚠️ This spec has not completed Phase 3 consolidation.
+⚠️ This spec has not completed consolidation.
 
-Run /wf-phase3-consolidate first to address Phase 2 feedback.
+Run /wf-phase3-consolidate first to address Phase 2 feedback (if this came from the full
+pipeline), or /wf-plan if you haven't drafted a spec yet.
 ```
 
 ### Step 3: Read Required Documents
@@ -68,10 +74,16 @@ Run /wf-phase3-consolidate first to address Phase 2 feedback.
 Read thoroughly:
 
 1. **Main Spec**: `{specDir}/{feature-dir}/{FEATURE-ID}_*_SPEC.md`
-2. **Phase 3 Consolidation**: `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE3_CONSOLIDATION.md`
+2. **Phase 3 Consolidation** (if it exists): `{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE3_CONSOLIDATION.md`.
+   If it doesn't exist (a `/wf-plan`-originated spec), read the spec's own "Decisions Requiring
+   Your Judgment" section instead — that's where the equivalent "what was decided and why"
+   context lives for specs consolidated live rather than in a separate phase.
 3. **CLAUDE.md**: For project patterns and conventions
 4. **Related existing code**: Based on "Files Modified" section of spec
-5. **Interface files** (if `"interfaceFirst": true` in project-config): read the files listed in the consolidation's `interfaceFilesCreated` — these are the agreed contracts to implement against
+5. **Interface files** (if `"interfaceFirst": true` in project-config **and** a Phase 3
+   consolidation doc exists): read the files listed in the consolidation's `interfaceFilesCreated`
+   — these are the agreed contracts to implement against. `/wf-plan` doesn't generate interface
+   files, so this is only relevant for specs from the full pipeline.
 
 ### Step 4: Create Implementation Plan
 

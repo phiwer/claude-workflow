@@ -1,17 +1,22 @@
 ---
 name: wf-phase1-spec-haiku
-description: Phase 1 (Haiku) - Create an initial feature specification for a template-following feature where the pattern is obvious. Use /wf-phase1-spec (Sonnet) for novel features or unclear requirements.
+description: Create an initial feature specification for a template-following feature where the pattern is obvious. Use /wf-plan for most other tickets, or /wf-phase1-spec (Sonnet) for novel features or unclear requirements.
 argument-hint: [feature-id] [your description of what the feature should do]
 allowed-tools: Read, Glob, Grep, Bash, Write
 model: haiku
 ---
 
 <!--
+SYNC NOTE: this file shares its spec template with wf-plan and wf-phase1-spec. The "Decisions
+Requiring Your Judgment" section name and the context.json base schema must stay consistent
+across all three. If you change one, change all three or note explicitly why this file
+deliberately diverges.
+
 This is the deliberate, explicit opt-in for template-following work — not a default. Use
-/wf-phase1-spec (Sonnet) unless you already know, before starting, that this feature is a
-clear repeat of an existing pattern. Any gaps get caught by Phase 2 agents anyway, but Phase 2
-is expensive to run against a spec that missed something a stronger model would have caught
-up front — so the judgment call of "is this actually template-following" is yours to make
+/wf-plan for most tickets, or /wf-phase1-spec (Sonnet) when requirements are genuinely
+unclear — unless you already know, before starting, that this feature is a clear repeat of an
+existing pattern. Any gaps get caught downstream anyway, but that's expensive insurance to lean
+on routinely — the judgment call of "is this actually template-following" is yours to make
 before invoking this command, not something this skill infers from the description.
 -->
 
@@ -100,7 +105,8 @@ Create `{specDir}/{feature-dir}/{FEATURE-ID}_{NAME}_SPEC.md`, following the same
 `/wf-phase1-spec` — **Status**, **Complexity Tier** (this command should almost always produce
 `Simple` or `Spike`; if your own analysis is pointing toward `Medium` or `Complex`, stop and
 recommend `/wf-phase1-spec` instead — that's a signal this isn't template-following after all),
-**Verification Status** (omit unless a load-bearing claim exists — see Step 4.5), **Overview**,
+**Decisions Requiring Your Judgment** (omit unless a load-bearing claim exists — see Step 4.5),
+**Overview**,
 **Application Interface** (if applicable), **Components**, **Configuration/Constants** (if
 applicable), **Architecture Integration** (if applicable), **Files**, **HTTP Endpoints** (if
 applicable), **Test Strategy**, **Key Implementation Notes**, **Related Specifications**, **Open
