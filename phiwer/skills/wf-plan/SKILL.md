@@ -3,7 +3,7 @@ name: wf-plan
 description: Default entry point for spec creation - one live, human-in-the-loop session that collapses Phase 1, 1.5, 2, and 3 into one for tickets that fit. Escalates to /wf-phase1-spec (the full multi-session reviewed pipeline) for genuine outliers it can't responsibly handle in one sitting.
 argument-hint: [feature-id] [your description of what the feature should do]
 allowed-tools: Read, Glob, Grep, Bash, Write, Task, AskUserQuestion
-model: sonnet
+model: opus
 ---
 
 <!--
@@ -13,6 +13,16 @@ Judgment" section (renamed from "Verification Status"), the rest of the spec tem
 the context.json base schema (specPath/featureId/specDir/archiveDir/context block shape), and
 the token-ledger invocation shape (--ledger/--ticket flags). If you change one, change all three
 or note explicitly why this file deliberately diverges.
+
+Model: Opus, deliberately — matches Claude Code's own `opusplan` alias pattern (Opus for
+planning, Sonnet for execution). Planning is the low-volume side of a ticket (research this
+session: ~15% of a ticket's tokens vs. ~70% for implementation), so defaulting it to Opus
+doesn't reproduce the cost blowup that came from defaulting the *high-volume* implementation
+phase to Opus — that's what /wf-phase4-implement-sonnet already fixed, and stays fixed. The
+reasoning-quality case matters more here too: research found AI output that's subtly wrong
+often "passes a casual read" rather than getting caught by human review, which undercuts the
+assumption that Step 9's live human iteration is a safety net strong enough to justify a
+cheaper model on the draft it's reviewing.
 -->
 
 # Plan a Feature (default entry point)

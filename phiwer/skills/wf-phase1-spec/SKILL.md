@@ -17,11 +17,18 @@ this file deliberately diverges.
 Model Selection Guide:
 - Default to /wf-plan for most tickets — one live session, human reviews only the judgment-tier
   decisions, not the whole document. See its own SKILL.md for why.
-- Use this command (Sonnet) when you already know upfront a feature is architecturally novel,
+- Use this command when you already know upfront a feature is architecturally novel,
   requirements are genuinely unclear, or /wf-plan's own Step 7.5 gate already told you the spec
   grew too large for one session.
 - Use /wf-phase1-spec-haiku instead of either when the pattern is obvious before you start — a
   feature that clearly repeats an existing, already-implemented shape.
+
+Note this command runs on Sonnet while /wf-plan runs on Opus — not a downgrade for the harder
+case, a deliberate difference in how each gets its rigor. /wf-plan is one agent's solo judgment,
+so it needs the stronger model directly. This command's rigor comes from the review panel that
+follows (Phase 2's 2-4 agents cross-checking), not from the drafting model alone — matching
+Claude Code's own `opusplan` alias pattern of Opus for planning/judgment, Sonnet for the
+higher-volume mechanical work, here the multi-session pipeline machinery around the draft.
 -->
 
 # Phase 1: Write Feature Specification (full pipeline)
