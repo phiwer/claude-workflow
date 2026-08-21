@@ -212,7 +212,10 @@ TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scri
 > Phase 5 complete. Implementation verified. ✅
 >
 > **Next**: Start a new session and run `/wf-phase6-retrospective` — context will auto-load.
-> (Skip retrospective if the feature is trivial and no lessons need documenting.)
+> (Every retrospective checked across this project's history was either a verified, durable
+> CLAUDE.md addition or a reasoned "nothing generalizable here" — never filler, even for small
+> features. Consider `/wf-phase5-6-complete` next time to avoid a second context reload — this
+> standalone path is for when you deliberately want to pause here first.)
 
 **If ISSUES FOUND** — use AskUserQuestion for the within-phase decision only:
 - header: "Issues found"

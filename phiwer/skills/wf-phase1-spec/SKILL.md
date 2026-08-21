@@ -53,6 +53,23 @@ Identify:
 - Database schema changes (if any)
 - Configuration/constants to add
 
+## Step 4.5: Identify Unverified Assumptions
+
+Before drafting, separate what you've directly verified (read from source, ran, tested, cross-
+checked against actual behavior) from what you're assuming or inferring (trusted documentation,
+inferred from a similar-looking pattern, taken from the user's description without checking).
+
+This matters because it's the single most expensive failure mode observed in this workflow so
+far: two of the costliest corrections on record both traced to an unverified claim that got
+treated as established fact and built on — one inverted a measurement-based conclusion, the
+other asserted two operations were "the same" without checking. Neither was hard to verify; the
+gap was not flagging that it hadn't been.
+
+If the spec's design hinges on any claim you have NOT directly verified against source — not
+"this is probably how it works" but specifically the load-bearing kind, where being wrong would
+change the design — set `hingesOnUnverifiedClaim: true` for Step 9a and list each such claim
+under a "Verification Status" section in the spec (Step 7). Otherwise set it `false`.
+
 ## Step 5: Create spec directory
 
 Create: `{specDir}/{feature-id-lowercase}/`
@@ -120,6 +137,16 @@ otherwise look architecturally novel enough to qualify as Complex. If mid-implem
 spike's outcome turns into "ship this for real," treat that as scope change: stop, and re-run
 `/wf-phase1-spec` (or hand-consolidate) at the appropriate tier for the production version rather
 than retrofitting review onto the spike's spec after the fact.
+
+---
+
+## Verification Status (only if any unverified claim is load-bearing — omit otherwise)
+
+**Confirmed** (directly verified against source/tests/actual behavior):
+- {claim} — {how it was verified}
+
+**Assumed** (not directly verified — treat as risk if wrong):
+- {claim} — {why it's load-bearing; what would change if it's wrong}
 
 ---
 
@@ -265,6 +292,7 @@ Write `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`:
   "context": {
     "complexityTier": "{Spike | Simple | Medium | Complex}",
     "complexityJustification": "{brief reason}",
+    "hingesOnUnverifiedClaim": {true | false},
     "components": ["{component names}"],
     "openQuestions": {count},
     "properties": ["{constants/config names}"],
@@ -326,10 +354,21 @@ Display based on `complexityTier`:
 > **Next**: Start a new session and run `/wf-phase2-review` — context will auto-load.
 > (For an early sanity-check first, run `/wf-phase1-iterate` instead.)
 
-**Complex:**
-> Phase 1 complete. Context saved.
+**Complex, with `hingesOnUnverifiedClaim: true`:**
+> Phase 1 complete. Context saved. This spec's design hinges on a claim you haven't directly
+> verified (see "Verification Status") — that's exactly the shape of the two costliest
+> corrections on record for this workflow.
 >
-> **Next**: Start a new session and run `/wf-phase1-iterate` for early agent feedback — context will auto-load.
-> After iterate, start another new session and run `/wf-phase2-review`.
+> **Next**: Start a new session and run `/wf-phase1-iterate` for a cheap early check before
+> committing Phase 2's larger review to a spec that might be built on a wrong premise. After
+> iterate, start another new session and run `/wf-phase2-review`.
+
+**Complex, with `hingesOnUnverifiedClaim: false`:**
+> Phase 1 complete. Context saved. This spec doesn't hinge on an unverified claim, so
+> `/wf-phase1-iterate` is unlikely to earn its cost here — a comparable Complex-tier feature
+> skipped it and Phase 2 alone still caught issues just fine on its own.
+>
+> **Next**: Start a new session and run `/wf-phase2-review` directly — context will auto-load.
+> (Run `/wf-phase1-iterate` first anyway if you'd still like an early sanity check.)
 
 Do NOT offer next-phase navigation via AskUserQuestion. The user must manually start a new session.

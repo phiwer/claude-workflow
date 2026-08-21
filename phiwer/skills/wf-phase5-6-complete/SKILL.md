@@ -333,6 +333,18 @@ After adding new entries, read the full CLAUDE.md and do a consolidation pass:
 
 Make surgical edits only. Do not restructure or rewrite sections that are fine. Report every change made (merged, removed, condensed) so the user can verify nothing important was lost.
 
+**Check rule citations before trimming.** Run the citation-tracking script to see which
+ticket-tagged rules have never been referenced again by a later ticket's phase artifacts:
+
+```bash
+CC=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/check-rule-citations.py 2>/dev/null | head -1)
+[ -n "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" \
+  || echo "check-rule-citations: script not found, skipping (best-effort)"
+```
+
+A rule with zero citations isn't automatically wrong, but flag it in the Step 13 summary as a
+candidate for a human to reconsider.
+
 ## Step 12: Refresh Agent Context Excerpts
 
 After CLAUDE.md is finalized, regenerate `.claude/context/{agent-name}.md` for every agent file in `.claude/agents/` — extract only the sections relevant to each agent's domain from the updated CLAUDE.md. This keeps review agents current without requiring a manual `/wf-init` re-run.
@@ -348,9 +360,10 @@ Display:
 2. ✅ Retrospective complete with key learnings
 3. ✅ Project docs updated
 4. ✅ CLAUDE.md optimized (list merges, removals, condensations)
-5. ✅ Agent context excerpts refreshed
-6. ✅ Spec archived
-7. 🎉 Feature workflow complete!
+5. Any never-cited rules the citation script flagged, for a human to reconsider
+6. ✅ Agent context excerpts refreshed
+7. ✅ Spec archived
+8. 🎉 Feature workflow complete!
 
 ---
 

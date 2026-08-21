@@ -281,9 +281,9 @@ Display:
 - /wf-phase3-consolidate Address feedback, finalize spec
 - /wf-phase4-implement-sonnet  Implement the feature (Sonnet, default)
 - /wf-phase4-implement  Implement (Opus) — explicit opt-in for tickets flagged high-stakes
-- /wf-phase5-verify     Verify implementation matches spec
-- /wf-phase5-6-complete Verify + retrospective in one session
-- /wf-phase6-retrospective Document lessons learned
+- /wf-phase5-6-complete Verify + retrospective in one session (default — use this)
+- /wf-phase5-verify     Verify only — for when you deliberately want to pause before Phase 6
+- /wf-phase6-retrospective Retrospective only — pairs with a standalone /wf-phase5-verify
 - /wf-clear-context     Clear workflow context to start fresh
 ```
 

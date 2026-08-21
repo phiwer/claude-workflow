@@ -222,6 +222,11 @@ TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scri
 Display:
 > Phase 4 complete. Implementation done.
 >
-> **Next**: Start a new session and run `/wf-phase5-verify` — context will auto-load.
+> **Next**: Start a new session and run `/wf-phase5-6-complete` — context will auto-load. It
+> verifies and writes the retrospective in one session. (Every retrospective checked across this
+> project's history was either a verified, durable CLAUDE.md addition or a reasoned "nothing to
+> add" — never filler — but retrospective only happens when someone runs it; two tracked features
+> have a Phase 5 with no Phase 6 because the separate follow-up step never got run. Use standalone
+> `/wf-phase5-verify` only if you deliberately want to pause before committing to a retrospective.)
 
 Do NOT offer next-phase navigation via AskUserQuestion. The user must manually start a new session.
