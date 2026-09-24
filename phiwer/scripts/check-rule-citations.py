@@ -15,7 +15,7 @@ space by default.
 
 Usage:
     python3 check-rule-citations.py --rules CLAUDE.md [--rules .claude/rules/*.md ...] \
-        --archive-dir docs/specs/archive [--stale-days 90]
+        --archive-dir docs/specs/archive [--design-dir docs/design] [--stale-days 90]
 
 Best-effort: a missing/unreadable file is skipped, never aborts.
 """
@@ -27,6 +27,7 @@ import sys
 
 TAG_PATTERN = re.compile(r"\(([^)]*?\b([A-Z][A-Z0-9]+-\d+)\b[^)]*)\)")
 TICKET_IN_TEXT = re.compile(r"\b([A-Z][A-Z0-9]+-\d+)\b")
+FRONTMATTER_TICKET = re.compile(r"^ticket:\s*([A-Za-z][A-Za-z0-9]+-\d+)\s*$", re.MULTILINE)
 
 # Rule-numbering schemes (this project's own ORD-NN convention) are cross-references to
 # other rules, not ticket citations -- excluded by default so "(see ORD-05)" isn't mistaken
@@ -87,16 +88,24 @@ def _ticket_from_path(path):
     return match.group(1).upper() if match else None
 
 
-def _find_citations(archive_dir):
-    """{ticket: {citing_ticket: [file, ...]}} -- every OTHER ticket's phase artifact that
-    mentions this ticket's tag."""
+def _ticket_from_design_doc(path, content):
+    """Design docs (wf-design) carry their ticket in frontmatter; fall back to the path."""
+    match = FRONTMATTER_TICKET.search(content.split("\n---", 1)[0]) if content.startswith("---") else None
+    return match.group(1).upper() if match else _ticket_from_path(path)
+
+
+def _find_citations(archive_dir, design_dir=None):
+    """{ticket: {citing_ticket: [file, ...]}} -- every OTHER ticket's phase artifact (or
+    design doc) that mentions this ticket's tag."""
     citations = {}
-    pattern = os.path.join(archive_dir, "**", "*_PHASE*.md")
-    for path in glob.glob(pattern, recursive=True):
-        owning_ticket = _ticket_from_path(path)
+    paths = [(p, False) for p in glob.glob(os.path.join(archive_dir, "**", "*_PHASE*.md"), recursive=True)]
+    if design_dir:
+        paths += [(p, True) for p in glob.glob(os.path.join(design_dir, "**", "*.md"), recursive=True)]
+    for path, is_design_doc in paths:
         content = _read(path)
         if not content:
             continue
+        owning_ticket = _ticket_from_design_doc(path, content) if is_design_doc else _ticket_from_path(path)
         for mentioned in set(TICKET_IN_TEXT.findall(content)):
             if owning_ticket and mentioned.upper() == owning_ticket.upper():
                 continue  # a ticket's own artifacts always mention itself; not a citation
@@ -111,6 +120,8 @@ def main():
                          help="rule file path(s) or globs to scan for (TICKET) tags")
     parser.add_argument("--archive-dir", default="docs/specs/archive",
                          help="directory to scan for phase artifacts citing those tags")
+    parser.add_argument("--design-dir", default="",
+                         help="directory of wf-design docs to scan as well (ticket from frontmatter)")
     parser.add_argument("--exclude-prefix", nargs="*", default=[],
                          help="additional non-ticket prefixes to exclude (ORD is always excluded)")
     args = parser.parse_args()
@@ -126,7 +137,7 @@ def main():
         print("check-rule-citations: no ticket-tagged rules found in the given files", file=sys.stderr)
         return
 
-    citations = _find_citations(args.archive_dir)
+    citations = _find_citations(args.archive_dir, args.design_dir or None)
 
     print(f"# Rule citation report ({len(tags)} tagged rules)\n")
     print("| Origin ticket | Rule | Cited by | Times |")
