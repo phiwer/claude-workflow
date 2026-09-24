@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "phiwer",
-      "description": "A structured 6-phase feature development workflow (spec → review → consolidate → implement → verify → retrospective)",
+      "description": "A design-first feature workflow (Elephant-Goldfish): design -> build -> close",
       "author": {
         "name": "phiwer"
       },

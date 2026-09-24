@@ -45,7 +45,32 @@ This creates `.claude/agents/` (e.g. `qa-engineer.md`, `backend-dev.md`) and `.c
 
 ---
 
-## Phases
+## v2 (release candidate): design-first
+
+The default flow in v2 is three skills, based on Dave Rensin's
+[Elephant-Goldfish model](https://drensin.medium.com/elephants-goldfish-and-the-new-golden-age-of-software-engineering-c33641a48874):
+
+| Skill | Model | What it does |
+|---|---|---|
+| `/phiwer:wf-design` | Opus | The **Elephant**: proposes a tier (small / medium / large), creates the design doc early and keeps it current, argues the design with you toward six gates, dispatches a **researcher**, tests the doc with a **goldfish** (fresh subagent given only the doc path), runs a **critic** for large tier, and gets your approval. |
+| `/phiwer:wf-build` | Sonnet | New session. Resumes from the doc, dispatches one fresh **implementer** per chunk, reviews and commits each chunk, handles STOPPED escalations with you, then runs a capped rule-compliance review (**code-reviewer**). |
+| `/phiwer:wf-close` | Sonnet | Verifies against the doc, fills in As-built, sets `status: built`, writes a short retrospective into the doc, feeds lessons into CLAUDE.md / `.claude/rules`, records token totals. |
+
+The five agents ship with the plugin (`phiwer:researcher`, `phiwer:goldfish`, `phiwer:critic`,
+`phiwer:implementer`, `phiwer:code-reviewer`). Project agents from `/wf-init` remain available
+as domain specialists.
+
+Differences from the original kit: goldfish and critic loops are capped (medium: 2 goldfish
+rounds; large: 3 goldfish, 2 critic), planning and building run in separate sessions so the
+Opus context never pays for diffs, the code-reviewer also enforces the project's own rules,
+and every session records a row in `TOKEN_LEDGER.csv`.
+
+Config (`.claude/workflow/project-config.json`): `designDir` (default `docs/design`) and an
+optional `designTemplate` to replace the generic doc template with a project one.
+
+The v1 phase skills below still work during the trial and will be removed at 2.0.0.
+
+## Phases (v1)
 
 ### Phase 1 — Specification
 

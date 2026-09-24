@@ -7,8 +7,12 @@ model: sonnet
 
 # Workflow Init: Bootstrap Project Workflow
 
-Set up the 6-phase feature development workflow for this project by detecting the tech stack,
-proposing appropriate review agents, and creating the necessary config files.
+Set up the feature workflow for this project by detecting the tech stack, proposing
+appropriate project agents, and creating the necessary config files. The default flow is
+`/wf-design` → `/wf-build` → `/wf-close` (design-first, Elephant-Goldfish); the plugin ships
+its own researcher, goldfish, critic, implementer and code-reviewer agents, so the project
+agents created here are domain specialists that `/wf-design` can call on for research and
+review.
 
 ## Instructions
 
@@ -163,8 +167,8 @@ Ask the user to confirm path defaults:
 Use AskUserQuestion:
 - header: "Project paths"
 - question: "Confirm or adjust the workflow paths for this project:"
-- option1: label="Use defaults (docs/specs, ROADMAP.md)", description="specDir=docs/specs, archiveDir=docs/specs/archive, roadmapFile=ROADMAP.md"
-- option2: label="Customize paths", description="Enter custom paths for spec directory, archive, and roadmap file"
+- option1: label="Use defaults (docs/design, docs/specs, ROADMAP.md)", description="designDir=docs/design, specDir=docs/specs (token ledger, v1 specs), archiveDir=docs/specs/archive, roadmapFile=ROADMAP.md"
+- option2: label="Customize paths", description="Enter custom paths for design docs, spec directory, archive, and roadmap file"
 
 If "Use defaults" — write config with defaults.
 If "Customize paths" — ask a follow-up for each path (or accept an "Other" text input).
@@ -172,6 +176,14 @@ If "Customize paths" — ask a follow-up for each path (or accept an "Other" tex
 Before writing, check:
 - Does `{specDir}` directory exist? Warn if not (it will be created by wf-phase1-spec)
 - Does `{roadmapFile}` exist? Warn if not (wf-phase1-spec needs it to suggest features)
+
+Then ask about the design doc template:
+
+Use AskUserQuestion:
+- header: "Doc template"
+- question: "Design docs use the plugin's generic template. Use a project-specific template instead? (It may add sections, e.g. domain language or aggregate invariants, but must keep the frontmatter, Gates, Alternatives, Implementation with Chunk progress, and As-built.)"
+- option1: label="Plugin default", description="Leave designTemplate unset"
+- option2: label="Project template", description="Give a path to an existing template file in the repo"
 
 Then ask about git worktrees:
 
@@ -186,6 +198,8 @@ Set `worktreesEnabled` to `true` or `false` accordingly.
 Write `.claude/workflow/project-config.json`:
 ```json
 {
+  "designDir": "{designDir}",
+  "designTemplate": "{path, or omit}",
   "specDir": "{specDir}",
   "archiveDir": "{archiveDir}",
   "roadmapFile": "{roadmapFile}",
@@ -214,6 +228,9 @@ each of these entries to the `allow` array if not already present:
 
 ```
 "Skill(wf-init)"
+"Skill(wf-design)"
+"Skill(wf-build)"
+"Skill(wf-close)"
 "Skill(wf-plan)"
 "Skill(wf-phase1-spec)"
 "Skill(wf-phase1-spec-haiku)"
@@ -229,6 +246,25 @@ each of these entries to the `allow` array if not already present:
 ```
 
 Write the updated file. Do not remove any existing entries.
+
+### Step 5b: Working Agreement in CLAUDE.md
+
+Check whether `CLAUDE.md` already has a "Working agreement" section. If not, use
+AskUserQuestion (header: "Working rules") to offer appending this block (append only; never
+overwrite or reorder existing content):
+
+```markdown
+## Working agreement
+- Design before implementation. For anything beyond a small, obvious, reversible change,
+  use /wf-design; don't write or edit code until the user approves the design.
+- Your value is finding what I've missed. Before agreeing with a claim or proposal, state the
+  strongest objection to it. If there is none worth raising, say so briefly and move on.
+- When unsure how the system works, say so, then read the code or dispatch a researcher.
+  Never guess about existing behaviour.
+- Before editing, name the files you intend to change and why.
+- The design doc is the source of truth and the recovery point. Keep it current as decisions
+  are made; if this session is lost, a fresh one must be able to resume from the doc alone.
+```
 
 ### Step 6: Create Context Excerpts
 
@@ -276,6 +312,7 @@ Display:
 {list each .claude/agents/{name}.md created or skipped}
 
 ### Config
+- Design directory: {designDir} (template: {designTemplate}, if set)
 - Spec directory: {specDir}
 - Archive directory: {archiveDir}
 - Roadmap file: {roadmapFile}
@@ -285,7 +322,12 @@ Display:
   Phase 6)
 
 ### Available commands
-- /wf-plan               Plan a feature (default) — one live session, collapses spec+review+consolidate into one for tickets that fit
+- /wf-design            Plan a ticket (default) — design doc, goldfish test, critic, your approval
+- /wf-build             Implement the approved doc chunk by chunk (fresh session)
+- /wf-close             Verify against the doc, as-built, retrospective, rule updates, token totals
+
+v1 pipeline (being retired; kept during the v2 trial):
+- /wf-plan               Plan a feature — one live session, collapses spec+review+consolidate into one for tickets that fit
 - /wf-phase1-spec        Full pipeline Phase 1 — for genuine outliers /wf-plan's own gate flags as too large, or when you already know upfront a feature is architecturally novel
 - /wf-phase1-spec-haiku  Create a spec (Haiku) — only when the pattern is obviously template-following
 - /wf-phase1-iterate     Quick pre-review of a DRAFT spec (full pipeline only)
