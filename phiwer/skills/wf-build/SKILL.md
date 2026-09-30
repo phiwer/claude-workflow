@@ -100,7 +100,8 @@ When all chunks are ticked:
    fi
    ```
    The ledger's `subagent_total` column is the implementers' and reviewers' share.
-2. Set `lastPhase: "wf-build"` in the context file.
+2. Set `lastPhase: "wf-build"` in `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`
+   (absolute path; a relative one resolves inside the worktree).
 3. Display: chunks built, commits, review verdict and passes, test result, anything handed to
    the user. Then:
    > **Next**: start a new session and run `/wf-close {TICKET}`.
