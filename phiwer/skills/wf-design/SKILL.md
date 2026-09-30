@@ -79,7 +79,10 @@ For medium and large:
 3. If images were attached, save them under `{designDir}/{ticket-lower}-assets/` and transcribe
    every label, arrow and annotation into the doc's Context section. Chat images don't survive
    the session; the transcription is what the Goldfish and implementer will see.
-4. Write the context file:
+4. Write the context file at the absolute path `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`
+   from Step 0. Never use a relative `.claude/workflow/` path: after `EnterWorktree` it would
+   land inside the worktree, where `/wf-build` and `/wf-close` never look, and this phase's
+   token usage would be missing from the ticket's total.
    ```json
    {
      "featureId": "{TICKET}",

@@ -74,7 +74,9 @@ If `.claude/context/` exists, regenerate `.claude/context/{agent}.md` for each a
 
 ## Step 5: Roadmap
 
-If `{roadmapFile}` exists, mark the ticket complete.
+If `{roadmapFile}` exists, mark the ticket complete. If `{specDir}/SPECS_INDEX.md` exists, add
+or update the ticket's row (status `COMPLETE`, linked to the design doc), matching the existing
+columns.
 
 ## Step 6: Token totals
 
@@ -90,12 +92,17 @@ else
   echo "token-usage: script not found, skipping (best-effort)"
 fi
 ```
-This appends a "Token Usage (all phases)" table to the doc.
+This appends a "Token Usage (all phases)" table to the doc. Check that the table lists every
+phase the ledger has for the ticket (`wf-design*`, `wf-build*`, `wf-close`); if one is missing,
+the script's stderr says where it looked, so fix the table from the ledger rows before
+committing.
 
 ## Step 7: Commit and finish
 
-1. Commit the doc, rule and roadmap changes following the project's commit rules (one commit
-   for the doc close-out, a separate one for rule changes).
+1. Commit the doc, rule, roadmap and ledger changes following the project's commit rules (one
+   commit for the doc close-out including `{specDir}/TOKEN_LEDGER.csv`, a separate one for rule
+   changes). The ledger is the only durable per-phase record once the context file is deleted,
+   so it must be committed, even if it was untracked before.
 2. Delete `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`.
 3. Display: verification result, As-built summary, rule changes, never-cited rules flagged,
    token total. Then:

@@ -196,6 +196,52 @@ def _load_context(path):
     return {}
 
 
+def _worktree_roots():
+    """Every checkout of the current repository (main first), or [] outside git."""
+    try:
+        result = subprocess.run(("git", "worktree", "list", "--porcelain"), capture_output=True,
+                                text=True, timeout=5, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if result.returncode != 0:
+        return []
+    return [line[len("worktree "):] for line in result.stdout.splitlines()
+            if line.startswith("worktree ")]
+
+
+def _merge_stray_contexts(context_path, data):
+    """Best-effort recovery for a context file written into a worktree instead of the main
+    checkout. Confirmed on TRA-1531: /wf-design wrote its context (and its token usage) under
+    the worktree after EnterWorktree, while /wf-build and /wf-close used the main checkout's
+    file, so the design phase was missing from the grand total. Copies in phases and keys the
+    main file lacks; never overwrites, so a phase is never counted twice. Returns the list of
+    stray files merged."""
+    target = os.path.realpath(context_path)
+    name = os.path.basename(context_path)
+    usage = data.setdefault("tokenUsage", {})
+    merged = []
+    for root in _worktree_roots():
+        candidate = os.path.join(root, ".claude", "workflow", name)
+        if not os.path.isfile(candidate) or os.path.realpath(candidate) == target:
+            continue
+        stray = _load_context(candidate)
+        for phase, value in (stray.get("tokenUsage") or {}).items():
+            if phase not in usage:
+                usage[phase] = value
+            elif usage[phase] != value:
+                print(f"token-usage: {candidate} has a different '{phase}' entry; "
+                      f"keeping the one in {context_path}", file=sys.stderr)
+        for key, value in stray.items():
+            if key not in ("tokenUsage", "tokenUsageTotal", "lastPhase"):
+                data.setdefault(key, value)
+        merged.append(candidate)
+        print(f"token-usage: merged stray context {candidate} into {context_path}",
+              file=sys.stderr)
+    if merged:
+        data["tokenUsageTotal"] = sum(v.get("total", 0) for v in usage.values())
+    return merged
+
+
 def _record(args, cfg, sid):
     if not sid:
         print("token-usage: no CLAUDE_CODE_SESSION_ID; skipping", file=sys.stderr)
@@ -213,6 +259,7 @@ def _record(args, cfg, sid):
         _upsert(args.artifact, "## Token Usage", section)
 
     data = _load_context(args.context)
+    _merge_stray_contexts(args.context, data)
     usage = data.setdefault("tokenUsage", {})
     usage[args.phase] = {
         "main": main, "subagents": sub,
@@ -272,6 +319,9 @@ def _reconcile_from_artifacts(directory, current_artifact, recorded_totals):
 
 def _total(args):
     data = _load_context(args.context)
+    if _merge_stray_contexts(args.context, data):
+        with open(args.context, "w", encoding="utf-8") as handle:
+            json.dump(data, handle, indent=2)
     usage = data.get("tokenUsage", {})
     if not usage:
         print("token-usage: no per-phase usage recorded yet", file=sys.stderr)
