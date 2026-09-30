@@ -63,8 +63,8 @@ contradictions (keep the newer/more specific), condense bloat. Report every chan
 
 Check rule citations first:
 ```bash
-CC=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/check-rule-citations.py 2>/dev/null | head -1)
-[ -n "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" --design-dir "{designDir}" \
+CC="{SKILL_DIR}/../../scripts/check-rule-citations.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
+[ -f "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" --design-dir "{designDir}" \
   || echo "check-rule-citations: script not found, skipping (best-effort)"
 ```
 Never-cited rules are candidates for the user to reconsider, not automatic deletions.
@@ -80,10 +80,10 @@ If `{roadmapFile}` exists, mark the ticket complete.
 
 Before deleting the context file:
 ```bash
-TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
 CTX="{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json"
 LEDGER="{specDir}/TOKEN_LEDGER.csv"
-if [ -n "$TU" ]; then
+if [ -f "$TU" ]; then
   python3 "$TU" --phase wf-close --context "$CTX" --ledger "$LEDGER" --ticket "{TICKET}"
   python3 "$TU" --mode total --context "$CTX" --artifact "{doc path}" --ledger "$LEDGER" --ticket "{TICKET}"
 else

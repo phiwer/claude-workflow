@@ -376,8 +376,8 @@ already passed wastes the pass without adding signal.
 5. Record token usage as **separate sub-phase entries**, so the ledger can later show whether
    the parallel-research fan-out is earning its cost:
    ```bash
-   TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
-   if [ -n "$TU" ]; then
+   TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
+   if [ -f "$TU" ]; then
      python3 "$TU" --phase wf-plan-research --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}"
      python3 "$TU" --phase wf-plan-draft --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}"
      python3 "$TU" --phase wf-plan-check --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}"

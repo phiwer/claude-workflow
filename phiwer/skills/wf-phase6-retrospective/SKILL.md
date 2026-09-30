@@ -220,8 +220,8 @@ ticket-tagged rules have never been referenced again by a later ticket's phase a
 a real usefulness signal, not a guess:
 
 ```bash
-CC=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/check-rule-citations.py 2>/dev/null | head -1)
-[ -n "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" \
+CC="{SKILL_DIR}/../../scripts/check-rule-citations.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
+[ -f "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" \
   || echo "check-rule-citations: script not found, skipping (best-effort)"
 ```
 
@@ -240,11 +240,11 @@ If `.claude/agents/` is empty or `.claude/context/` does not exist, skip silentl
 Run this **before** Step 12 clears the context file. First record this phase's own usage, then write the all-phases grand total into the retrospective document. The all-phases table includes a **non-cached output (generated) tokens** column per phase plus a grand-total output figure — surface this in the Step 13 summary, since output is the generated work and the clearest cost signal (the rest of the gross total is input, mostly cache reads):
 
 ```bash
-TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
 CTX="{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json"
 DOC="{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE6_RETROSPECTIVE.md"
 LEDGER="{specDir}/TOKEN_LEDGER.csv"
-if [ -n "$TU" ]; then
+if [ -f "$TU" ]; then
   python3 "$TU" --phase wf-phase6-retrospective --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
   python3 "$TU" --mode total --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
 else

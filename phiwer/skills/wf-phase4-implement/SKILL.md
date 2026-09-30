@@ -305,8 +305,8 @@ Persist a durable record so Phase 5/6 — and anyone glancing at the folder — 
 **9c — Record token usage.** Append this phase's token usage (main session + any spawned subagents) to the implementation record and context:
 
 ```bash
-TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
-[ -n "$TU" ] && python3 "$TU" --phase wf-phase4-implement \
+TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
+[ -f "$TU" ] && python3 "$TU" --phase wf-phase4-implement \
   --context "{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json" \
   --artifact "{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE4_IMPLEMENTATION.md" \
   --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{FEATURE-ID}" \

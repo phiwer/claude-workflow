@@ -315,11 +315,11 @@ Create TWO documents in `{archiveDir}/{feature-dir}/`:
 Run this **before** Step 10d clears the context file. Records this combined session's usage, then writes the all-phases grand total into the retrospective document:
 
 ```bash
-TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
+TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
 CTX="{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json"
 DOC="{archiveDir}/{feature-dir}/{FEATURE-ID}_PHASE6_RETROSPECTIVE.md"
 LEDGER="{specDir}/TOKEN_LEDGER.csv"
-if [ -n "$TU" ]; then
+if [ -f "$TU" ]; then
   python3 "$TU" --phase wf-phase5-6-complete --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
   python3 "$TU" --mode total --context "$CTX" --artifact "$DOC" --ledger "$LEDGER" --ticket "{FEATURE-ID}"
 else
@@ -366,8 +366,8 @@ Make surgical edits only. Do not restructure or rewrite sections that are fine. 
 ticket-tagged rules have never been referenced again by a later ticket's phase artifacts:
 
 ```bash
-CC=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/check-rule-citations.py 2>/dev/null | head -1)
-[ -n "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" \
+CC="{SKILL_DIR}/../../scripts/check-rule-citations.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
+[ -f "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" \
   || echo "check-rule-citations: script not found, skipping (best-effort)"
 ```
 

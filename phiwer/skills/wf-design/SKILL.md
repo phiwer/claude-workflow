@@ -178,8 +178,8 @@ approval, set `status: approved` in the frontmatter and tick the gates.
 1. Record token usage. Use phase key `wf-design`, or `wf-design-s2`, `-s3`… if the context
    file's `tokenUsage` already has a `wf-design*` entry (resumed planning):
    ```bash
-   TU=$(ls "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/phiwer/phiwer/*/scripts/record-token-usage.py 2>/dev/null | head -1)
-   if [ -n "$TU" ]; then
+   TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
+   if [ -f "$TU" ]; then
      python3 "$TU" --phase {phase-key} --context "{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{TICKET}"
    else
      echo "token-usage: script not found, skipping (best-effort)"
