@@ -1,7 +1,7 @@
 {
   "name": "phiwer",
   "description": "A design-first feature workflow (Elephant-Goldfish): /wf-design -> /wf-build -> /wf-close, with fresh-context goldfish, critic and implementer agents. The v1 phase pipeline remains available during the trial.",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "author": {
     "name": "phiwer",
     "url": "https://github.com/phiwer"
