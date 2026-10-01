@@ -9,12 +9,12 @@ subagents it spawned (`<session>/subagents/agent-*.jsonl`), then:
                   given) and a tokenUsage entry into the workflow context JSON.
   --mode total  : reads the context's recorded per-phase usage and writes a
                   "## Token Usage (all phases)" grand-total table into the
-                  artifact (used by Phase 6). The table surfaces non-cached
+                  artifact (used by /wf-close). The table surfaces non-cached
                   output (generated) tokens per phase alongside the gross total.
 
 If --ledger is given, every --mode record call also appends one row to a git-committed CSV
 ledger (ticket, phase, who ran it, model, tokens) -- unlike the context JSON (gitignored,
-deleted at Phase 6) and the per-artifact markdown tables (scattered across many files), the
+deleted by /wf-close) and the per-doc markdown tables (scattered across many files), the
 ledger is a single durable, structured record of what every feature/phase actually cost, and
 who ran it. --mode total appends one further row per feature with phase="ALL_PHASES_TOTAL",
 attributed to whoever ran the completing phase -- i.e. who completed the feature.
@@ -281,42 +281,6 @@ def _record(args, cfg, sid):
         ))
 
 
-def _artifact_phase_total(path):
-    """Extract a phase artifact's own '**phase total**' figure from its '## Token Usage'
-    section (the format _row()/_phase_section() always produce)."""
-    try:
-        with open(path, encoding="utf-8") as handle:
-            content = handle.read()
-    except (FileNotFoundError, IsADirectoryError):
-        return None
-    match = re.search(r"\|\s*\*\*phase total\*\*\s*\|.*\|\s*\*\*([\d,]+)\*\*\s*\|", content)
-    if not match:
-        return None
-    return int(match.group(1).replace(",", ""))
-
-
-def _reconcile_from_artifacts(directory, current_artifact, recorded_totals):
-    """Best-effort recovery for a known gap: a phase's token usage can end up recorded into
-    its own artifact file (via --artifact) but never rolled into the context file's
-    tokenUsage dict (e.g. an intervening full-file rewrite of the context between that
-    phase's --mode record call and this one). Confirmed on TRA-1507, where Phase 4's 14M
-    recorded tokens were present in TRA-1507_PHASE4_IMPLEMENTATION.md but absent from the
-    grand total this function replaces. Scan sibling phase artifacts for a '## Token Usage'
-    total not already present among the context's recorded per-phase totals, and surface it
-    instead of silently understating spend."""
-    if not directory or not os.path.isdir(directory):
-        return []
-    current_name = os.path.basename(current_artifact) if current_artifact else ""
-    missing = []
-    for name in sorted(os.listdir(directory)):
-        if name == current_name or not re.search(r"_PHASE\d", name) or not name.endswith(".md"):
-            continue
-        total = _artifact_phase_total(os.path.join(directory, name))
-        if total and total not in recorded_totals:
-            missing.append((name, total))
-    return missing
-
-
 def _total(args):
     data = _load_context(args.context)
     if _merge_stray_contexts(args.context, data):
@@ -334,34 +298,15 @@ def _total(args):
     ]
     grand = 0
     grand_output = 0
-    recorded_totals = set()
     for phase, value in usage.items():
         grand += value.get("total", 0)
-        recorded_totals.add(value.get("total", 0))
         output = ((value.get("main") or {}).get("output_tokens", 0)
                   + (value.get("subagents") or {}).get("output_tokens", 0))
         grand_output += output
         lines.append(f"| {phase} | {value.get('subagentCount', 0)} "
                      f"| {_fmt(output)} | {_fmt(value.get('total', 0))} |")
 
-    artifact_dir = os.path.dirname(args.artifact) if args.artifact else ""
-    missing = _reconcile_from_artifacts(artifact_dir, args.artifact, recorded_totals)
-
-    if missing:
-        recovered = sum(total for _name, total in missing)
-        lines.append(f"| **grand total (recorded)** |  | **{_fmt(grand_output)}** | **{_fmt(grand)}** |")
-        lines.append("")
-        lines.append(f"⚠️ **Reconciliation gap: {_fmt(recovered)} additional tokens found in "
-                     f"phase artifacts on disk that are not reflected above.** A phase's usage "
-                     f"was written into its own artifact file but never rolled into this "
-                     f"context's tokenUsage (a known gap — see the TRA-1507 retrospective). "
-                     f"Treat **{_fmt(grand + recovered)}** as this feature's true total, not "
-                     f"{_fmt(grand)}.")
-        lines.append("")
-        for name, total in missing:
-            lines.append(f"  - `{name}`: {_fmt(total)} tokens, absent from context")
-    else:
-        lines.append(f"| **grand total** |  | **{_fmt(grand_output)}** | **{_fmt(grand)}** |")
+    lines.append(f"| **grand total** |  | **{_fmt(grand_output)}** | **{_fmt(grand)}** |")
 
     lines.append("")
     lines.append("_\"output (non-cached)\" is generated tokens, which are never served "
@@ -374,17 +319,16 @@ def _total(args):
 
     if args.ledger:
         ticket = args.ticket or data.get("featureId") or "unknown"
-        true_total = grand + (sum(total for _name, total in missing) if missing else 0)
         _append_ledger(args.ledger, (
             datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
             ticket, "ALL_PHASES_TOTAL", _current_user(), "",
-            "", "", "", true_total,
+            "", "", "", grand,
         ))
 
 
 def main():
     parser = argparse.ArgumentParser(description="Record workflow phase token usage.")
-    parser.add_argument("--phase", default="", help="phase key, e.g. wf-phase4-implement")
+    parser.add_argument("--phase", default="", help="phase key, e.g. wf-build")
     parser.add_argument("--context", required=True, help="path to {FEATURE-ID}-context.json")
     parser.add_argument("--artifact", default="", help="phase artifact markdown file")
     parser.add_argument("--mode", choices=["record", "total"], default="record")

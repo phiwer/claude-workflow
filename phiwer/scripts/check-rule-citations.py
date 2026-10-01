@@ -4,13 +4,13 @@
 Every CLAUDE.md rule added via a retrospective carries a ticket tag, e.g. "(TRA-1475)" or
 "(Precedent: TRA-1475 -- OrderSnapshotService...)" -- a claim that the rule earned its place
 because of that ticket. This script checks whether that ticket is referenced again in any
-LATER, DIFFERENT ticket's phase artifacts (PHASE2_REVIEW.md, PHASE3_CONSOLIDATION.md,
-PHASE4_IMPLEMENTATION.md, PHASE5_VERIFICATION.md, PHASE6_RETROSPECTIVE.md) -- a signal the
+LATER, DIFFERENT ticket's design doc (--design-dir), or in the older pipeline's archived
+phase artifacts (*_PHASE*.md under --archive-dir) -- a signal the
 rule is still actively relevant to how work gets reviewed and implemented.
 
 A rule whose origin ticket is never cited again is not necessarily wrong -- it may just not
 have come up -- but it is a legitimate candidate for a human to reconsider during the next
-Phase 6 "Optimize CLAUDE.md" pass, rather than assuming every rule earns permanent shelf
+/wf-close rule-update pass, rather than assuming every rule earns permanent shelf
 space by default.
 
 Usage:
@@ -153,8 +153,8 @@ def main():
             stale.append(ticket)
 
     if stale:
-        print(f"\n**{len(stale)} rule(s) never cited again — candidates for the next Phase 6 "
-              f"CLAUDE.md trim pass to reconsider (not necessarily wrong, just unconfirmed "
+        print(f"\n**{len(stale)} rule(s) never cited again — candidates for the next /wf-close "
+              f"rule-update pass to reconsider (not necessarily wrong, just unconfirmed "
               f"since origin):** {', '.join(stale)}")
     else:
         print("\nEvery tagged rule has been cited again by at least one later ticket.")

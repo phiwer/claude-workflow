@@ -105,14 +105,14 @@ To generate an agent file, write `.claude/agents/{name}.md` with this structure:
 ```markdown
 ---
 name: {agent-name}
-description: {agent focus area — used to decide relevance in phase2 agent selection}
+description: {agent focus area — used by /wf-design to pick a domain specialist for research or review}
 tools: Read, Glob, Grep
 model: sonnet
 ---
 
 # {Agent Role} Review Agent
 
-Review implementation plans for {focus area} in this project.
+Answer research questions and review design docs for {focus area} in this project.
 
 ## Project Context
 
@@ -143,17 +143,17 @@ can talk itself past is not a gate.}
 
 ## Review Process
 
-1. Read the spec thoroughly
-2. Identify concerns in your focus areas
-3. Check against key patterns above
-4. Provide structured feedback
+1. Read the brief. It is either a research question with a scope, or a design doc path
+   (possibly with a lens checklist) to review.
+2. Read the doc or the code in scope.
+3. Check against your focus areas and the key patterns above.
+4. Report in the format the brief asks for.
 
 ## Output Format
 
-**Strengths**: What's done well in the spec
-**Concerns**: Issues to address (mark CRITICAL for blocking issues)
-**Recommendations**: Suggestions for improvement
-**Verdict**: APPROVED / APPROVED WITH REVISIONS / NEEDS REVISION
+Use the format the brief asks for. If it gives none: findings grouped by severity
+(Blocker / Major / Minor / Nit), each with what, a concrete failure scenario, and evidence
+(doc section or `file:line`). Report nothing for areas that are sound.
 ```
 
 Generate content for each agent using what you know about the detected stack and any
@@ -167,15 +167,15 @@ Ask the user to confirm path defaults:
 Use AskUserQuestion:
 - header: "Project paths"
 - question: "Confirm or adjust the workflow paths for this project:"
-- option1: label="Use defaults (docs/design, docs/specs, ROADMAP.md)", description="designDir=docs/design, specDir=docs/specs (token ledger, v1 specs), archiveDir=docs/specs/archive, roadmapFile=ROADMAP.md"
+- option1: label="Use defaults (docs/design, docs/specs, ROADMAP.md)", description="designDir=docs/design, specDir=docs/specs (token ledger), archiveDir=docs/specs/archive (older specs, scanned for rule citations), roadmapFile=ROADMAP.md"
 - option2: label="Customize paths", description="Enter custom paths for design docs, spec directory, archive, and roadmap file"
 
 If "Use defaults" — write config with defaults.
 If "Customize paths" — ask a follow-up for each path (or accept an "Other" text input).
 
 Before writing, check:
-- Does `{specDir}` directory exist? Warn if not (it will be created by wf-phase1-spec)
-- Does `{roadmapFile}` exist? Warn if not (wf-phase1-spec needs it to suggest features)
+- Does `{designDir}` exist? Note it will be created by the first `/wf-design`.
+- Does `{roadmapFile}` exist? Optional; `/wf-design` uses a ticket's roadmap entry when present.
 
 Then ask about the design doc template:
 
@@ -190,7 +190,7 @@ Then ask about git worktrees:
 Use AskUserQuestion:
 - header: "Git worktrees?"
 - question: "Isolate each feature in its own git worktree for parallel development? Uses Claude Code's native worktree mechanism (EnterWorktree) — creates each feature's worktree at .claude/worktrees/{feature-id}/ and blocks accidental edits to the main checkout while working in one. Location and base-branch behavior are configured at the Claude Code level (worktree.baseRef in settings.json, or a WorktreeCreate hook for a custom location), not by this plugin."
-- option1: label="Yes — enable worktrees", description="Each feature gets an isolated native worktree from Phase 1 onward"
+- option1: label="Yes — enable worktrees", description="Each feature gets an isolated native worktree from /wf-design onward"
 - option2: label="No — skip", description="Work on one feature at a time in the main checkout"
 
 Set `worktreesEnabled` to `true` or `false` accordingly.
@@ -231,17 +231,6 @@ each of these entries to the `allow` array if not already present:
 "Skill(wf-design)"
 "Skill(wf-build)"
 "Skill(wf-close)"
-"Skill(wf-plan)"
-"Skill(wf-phase1-spec)"
-"Skill(wf-phase1-spec-haiku)"
-"Skill(wf-phase1-iterate)"
-"Skill(wf-phase2-review)"
-"Skill(wf-phase3-consolidate)"
-"Skill(wf-phase4-implement)"
-"Skill(wf-phase4-implement-sonnet)"
-"Skill(wf-phase5-verify)"
-"Skill(wf-phase5-6-complete)"
-"Skill(wf-phase6-retrospective)"
 "Skill(wf-clear-context)"
 ```
 
@@ -316,28 +305,15 @@ Display:
 - Spec directory: {specDir}
 - Archive directory: {archiveDir}
 - Roadmap file: {roadmapFile}
-- Token ledger: {specDir}/TOKEN_LEDGER.csv (created on first phase run — commit it like any
-  other file; it's the only durable, structured, cross-feature record of what each phase cost
-  and who ran it, unlike the per-feature context.json which is gitignored and deleted at
-  Phase 6)
+- Token ledger: {specDir}/TOKEN_LEDGER.csv (created on the first /wf-design — commit it like
+  any other file; it's the only durable, structured, cross-feature record of what each phase
+  cost and who ran it, unlike the per-feature context.json which is gitignored and deleted by
+  /wf-close)
 
 ### Available commands
 - /wf-design            Plan a ticket (default) — design doc, goldfish test, critic, your approval
 - /wf-build             Implement the approved doc chunk by chunk (fresh session)
 - /wf-close             Verify against the doc, as-built, retrospective, rule updates, token totals
-
-v1 pipeline (being retired; kept during the v2 trial):
-- /wf-plan               Plan a feature — one live session, collapses spec+review+consolidate into one for tickets that fit
-- /wf-phase1-spec        Full pipeline Phase 1 — for genuine outliers /wf-plan's own gate flags as too large, or when you already know upfront a feature is architecturally novel
-- /wf-phase1-spec-haiku  Create a spec (Haiku) — only when the pattern is obviously template-following
-- /wf-phase1-iterate     Quick pre-review of a DRAFT spec (full pipeline only)
-- /wf-phase2-review      Full design review with selected agents (full pipeline only)
-- /wf-phase3-consolidate Address feedback, finalize spec (full pipeline only)
-- /wf-phase4-implement-sonnet  Implement the feature (Sonnet, default)
-- /wf-phase4-implement  Implement (Opus) — explicit opt-in for tickets flagged high-stakes
-- /wf-phase5-6-complete Verify + retrospective in one session (default — use this)
-- /wf-phase5-verify     Verify only — for when you deliberately want to pause before Phase 6
-- /wf-phase6-retrospective Retrospective only — pairs with a standalone /wf-phase5-verify
 - /wf-clear-context     Clear workflow context to start fresh
 ```
 
@@ -347,7 +323,7 @@ If `CLAUDE.md` was absent or under 100 lines during this run, also display:
 ⚠️  CLAUDE.md missing or thin — agent context is generic
 
 Agents were created with inferred tech-stack content rather than project-specific
-conventions. To get the most out of the review phases, create a CLAUDE.md with at minimum:
+conventions. To get the most out of research and review, create a CLAUDE.md with at minimum:
 
   - Build and test commands
   - Project description and key architectural decisions

@@ -15,6 +15,7 @@ title: <Feature name>
 ticket: <TICKET-ID>
 status: draft        # draft | approved | built. Only the user sets approved.
 tier: medium         # medium | large
+implementer: sonnet  # sonnet | opus. opus only for high-stakes tickets; see /wf-build.
 updated: <YYYY-MM-DD>
 ---
 

@@ -45,6 +45,9 @@ Per chunk:
    ```
    Pass nothing else. If it needs context the doc lacks, that is a doc gap to fix, not
    something to smuggle in through the brief.
+   If the doc's frontmatter has `implementer: opus`, dispatch with the model set to `opus`;
+   otherwise use the agent's default (Sonnet). Use the same model for every implementer
+   dispatch on this ticket, including redispatches and review fixes.
 2. **Review** its report, then read `git diff` against the chunk's rows. Check that only the
    chunk's files changed, and that small deviations were logged in As-built.
 3. **Handle the outcome:**
