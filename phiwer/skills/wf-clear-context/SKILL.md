@@ -56,14 +56,7 @@ Then output:
 ```
 Workflow context cleared: {filename(s) deleted}
 
-You can now run any phase skill to start fresh:
-- /wf-phase1-spec       Create a new specification
-- /wf-phase1-iterate    Iterate on an existing DRAFT spec
-- /wf-phase2-review     Run formal design review
-- /wf-phase3-consolidate Address feedback and finalize spec
-- /wf-phase4-implement  Implement (Opus, thorough)
-- /wf-phase4-implement-sonnet  Implement (Sonnet, faster)
-- /wf-phase5-verify     Verify implementation
-- /wf-phase5-6-complete Verify + retrospective combined
-- /wf-phase6-retrospective Document lessons learned
+Design docs are untouched. Run /wf-design to start a new ticket; /wf-build and /wf-close
+still resume an existing ticket from its doc, but token usage recorded for it so far is gone
+from the context (the ledger rows remain).
 ```
