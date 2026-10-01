@@ -32,7 +32,9 @@ privacy-sensitive paths, new services, anything hard to revert or with other tea
 on it.
 
 Requires: all six gates in full; goldfish loop until clean (at most 3 rounds); critic loop until
-no blocker or major findings (at most 2 rounds). Suggest human review of the doc by a colleague
+no blocker or major findings (at most 2 rounds). Up to two lens critics may join the general
+critic when the design has matching risks and the user agrees (`critic-lenses.md`); they run
+in parallel and share the round cap. Suggest human review of the doc by a colleague
 before approval where one is available.
 
 ## Round caps

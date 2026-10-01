@@ -52,8 +52,8 @@ The default flow in v2 is three skills, based on Dave Rensin's
 
 | Skill | Model | What it does |
 |---|---|---|
-| `/phiwer:wf-design` | Opus | The **Elephant**: proposes a tier (small / medium / large), creates the design doc early and keeps it current, argues the design with you toward six gates, dispatches a **researcher**, tests the doc with a **goldfish** (fresh subagent given only the doc path), runs a **critic** for large tier, and gets your approval. |
-| `/phiwer:wf-build` | Sonnet | New session. Resumes from the doc, dispatches one fresh **implementer** per chunk, reviews and commits each chunk, handles STOPPED escalations with you, then runs a capped rule-compliance review (**code-reviewer**). |
+| `/phiwer:wf-design` | Opus | The **Elephant**: proposes a tier (small / medium / large), creates the design doc early and keeps it current, argues the design with you toward six gates, dispatches a **researcher**, tests the doc with a **goldfish** (fresh subagent given only the doc path), runs a **critic** for large tier (plus up to two opt-in lens critics, e.g. security or data, when the design has those risks), and gets your approval. |
+| `/phiwer:wf-build` | Sonnet | New session. Resumes from the doc, dispatches one fresh **implementer** per chunk (Opus if the doc sets `implementer: opus`), reviews and commits each chunk, handles STOPPED escalations with you, then runs a capped rule-compliance review (**code-reviewer**). |
 | `/phiwer:wf-close` | Sonnet | Verifies against the doc, fills in As-built, sets `status: built`, writes a short retrospective into the doc, feeds lessons into CLAUDE.md / `.claude/rules`, records token totals. |
 
 The five agents ship with the plugin (`phiwer:researcher`, `phiwer:goldfish`, `phiwer:critic`,

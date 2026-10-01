@@ -157,10 +157,25 @@ Doc: {doc path}
 **critic**: finds what the design missed. Again, pass only the doc path. Required for large,
 optional for medium.
 
+**Lens critics (large tier, opt-in).** Read `references/critic-lenses.md`. If the design has
+risks that match a lens, propose up to two lens critics to the user alongside the general
+critic, one line of reason each; add them only if the user agrees. Brief each lens critic with:
+
+```
+Doc: {doc path}
+Lens: {lens name}
+Checklist:
+{the lens's checklist, verbatim}
+```
+
+Run the general critic and the lens critics in parallel. Together they count as one critic
+round. Before triage, merge their reports: drop duplicates (keep the most concrete version),
+and drop findings that have no concrete failure scenario.
+
 Run the goldfish first; there is no point critiquing a doc that cannot be understood. Loop:
 fix the doc, spawn a *new* goldfish or critic (never reuse one; it is no longer a goldfish),
-and stop when the goldfish's guess-list is empty or trivial and the critic returns no blocker
-or major findings. **Respect the round caps in `references/tiers.md`**: when a cap is hit, stop
+and stop when the goldfish's guess-list is empty or trivial and the critics return no blocker
+or major findings. A second critic round reruns only the critics that found blockers or majors. **Respect the round caps in `references/tiers.md`**: when a cap is hit, stop
 and hand the residue to the user instead of looping again.
 
 ## Step 6: Triage findings with the user
@@ -175,6 +190,11 @@ questions. Expect a fair share of findings to be noise; filtering is the point.
 Only the user approves. When all gates for the tier are met, summarize the design in a few
 lines (problem, chosen approach, chunk list) and ask for approval via AskUserQuestion. On
 approval, set `status: approved` in the frontmatter and tick the gates.
+
+In the same question, propose the implementer model. Default `sonnet`. Suggest `opus` only for
+a large-tier doc where a subtle mistake would be costly and hard to catch in review: security,
+privacy or money paths, data migrations, concurrency. Record the choice as `implementer:` in the
+frontmatter.
 
 ## Step 8: Record and hand off
 
