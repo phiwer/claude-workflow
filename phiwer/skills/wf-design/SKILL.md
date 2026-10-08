@@ -45,6 +45,12 @@ Read `.claude/workflow/project-config.json` (defaults if absent):
 Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` → `GIT_MAIN_ROOT`. The
 context file is `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`.
 
+**Worktree isolation.** Once a session has called `EnterWorktree`, Claude Code refuses every
+write outside that worktree — including to `{GIT_MAIN_ROOT}`. Both the Write tool and a Bash
+heredoc are blocked. So the context file must be written *before* entering a worktree (Step 3),
+and any later update from inside one falls back to the worktree's own
+`.claude/workflow/{TICKET}-context.json`. Readers therefore check both locations.
+
 If `{roadmapFile}` exists and has an entry for the ticket, use it to supplement (never
 override) the user's description.
 
@@ -72,17 +78,16 @@ remaining steps. Escalate to medium if the change turns out bigger than it looke
 
 For medium and large:
 
-1. If `worktreesEnabled`: use **`EnterWorktree`** with name `{ticket-lower}` now, so the doc is
-   born on the feature branch. Read back the path and branch.
-2. Create `{designDir}/{ticket-lower}-{short-name}.md` from `designTemplate` (or this skill's
-   `references/doc-template.md`), headings and frontmatter only, `status: draft`.
-3. If images were attached, save them under `{designDir}/{ticket-lower}-assets/` and transcribe
-   every label, arrow and annotation into the doc's Context section. Chat images don't survive
-   the session; the transcription is what the Goldfish and implementer will see.
-4. Write the context file at the absolute path `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`
-   from Step 0. Never use a relative `.claude/workflow/` path: after `EnterWorktree` it would
-   land inside the worktree, where `/wf-build` and `/wf-close` never look, and this phase's
-   token usage would be missing from the ticket's total.
+1. **Write the context file first, before any `EnterWorktree`**, at the absolute path
+   `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json` from Step 0. This ordering is the
+   whole point: after `EnterWorktree` the write is refused, and a relative
+   `.claude/workflow/` path would land inside the worktree. `/wf-build` and `/wf-close` look
+   in `{GIT_MAIN_ROOT}` first, and this phase's token usage is recorded against this file.
+
+   If `worktreesEnabled`, fill `worktreePath` and `branchName` with the values
+   `EnterWorktree` is about to produce for name `{ticket-lower}`:
+   `{GIT_MAIN_ROOT}/.claude/worktrees/{ticket-lower}` and branch `worktree-{ticket-lower}`.
+   Otherwise leave both out.
    ```json
    {
      "featureId": "{TICKET}",
@@ -94,6 +99,16 @@ For medium and large:
      "branchName": "{if any}"
    }
    ```
+2. If `worktreesEnabled`: use **`EnterWorktree`** with name `{ticket-lower}` now, so the doc is
+   born on the feature branch. Read back the path and branch, and compare them with what you
+   predicted in step 1. If either differs, say so to the user and give them the one-line fix
+   (you can no longer correct the file yourself):
+   `! sed -i 's|<predicted>|<actual>|' .claude/workflow/{TICKET}-context.json`
+3. Create `{designDir}/{ticket-lower}-{short-name}.md` from `designTemplate` (or this skill's
+   `references/doc-template.md`), headings and frontmatter only, `status: draft`.
+4. If images were attached, save them under `{designDir}/{ticket-lower}-assets/` and transcribe
+   every label, arrow and annotation into the doc's Context section. Chat images don't survive
+   the session; the transcription is what the Goldfish and implementer will see.
 
 Update the doc whenever a decision is made, an assumption is settled or an alternative is
 rejected, and bump `updated:`. A decision that lives only in the conversation is lost at

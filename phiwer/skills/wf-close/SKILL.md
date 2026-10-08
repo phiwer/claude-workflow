@@ -19,7 +19,9 @@ $ARGUMENTS
 
 Same as `/wf-build` Step 0: read config (`designDir`, `specDir`, `archiveDir` =
 `docs/specs/archive`, `roadmapFile` = `ROADMAP.md`), find the doc
-and context file, enter the worktree if one is recorded. The doc must be `approved` with every
+and context file — globbing both `{GIT_MAIN_ROOT}/.claude/workflow/` and
+`{GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/` — and enter the worktree if one is
+recorded. The doc must be `approved` with every
 chunk ticked; if not, point the user at `/wf-build` and stop.
 
 ## Step 1: Verify against the doc
@@ -103,7 +105,16 @@ committing.
    commit for the doc close-out including `{specDir}/TOKEN_LEDGER.csv`, a separate one for rule
    changes). The ledger is the only durable per-phase record once the context file is deleted,
    so it must be committed, even if it was untracked before.
-2. Delete `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`.
-3. Display: verification result, As-built summary, rule changes, never-cited rules flagged,
+2. Delete the context file from **both** locations it may exist in:
+   `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json` and
+   `{worktreePath}/.claude/workflow/{TICKET}-context.json`. If you are inside the worktree,
+   the first delete is refused by worktree isolation — remove the worktree copy, then give the
+   user the one-liner for the other:
+   `! rm .claude/workflow/{TICKET}-context.json`
+3. If a `worktreePath` is recorded and its branch is merged, offer to remove the worktree
+   (`ExitWorktree` with `remove`, or `git worktree remove`). Worktrees left behind accumulate:
+   check `git worktree list` against `git branch --merged origin/main` and tell the user about
+   any other stale ones you find.
+4. Display: verification result, As-built summary, rule changes, never-cited rules flagged,
    token total. Then:
    > **{TICKET}** is built and closed. Start a new session with `/wf-design` for the next one.

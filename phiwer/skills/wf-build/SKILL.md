@@ -22,7 +22,11 @@ $ARGUMENTS
 1. Read `.claude/workflow/project-config.json` (defaults: `designDir` = `docs/design`,
    `specDir` = `docs/specs`). `GIT_MAIN_ROOT` = `git worktree list 2>/dev/null | head -1 | awk '{print $1}'`.
 2. Find the doc: the argument (path, or ticket → `{designDir}/{ticket-lower}-*.md`), else glob
-   `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json` and ask which ticket if more than one.
+   `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json` **and**
+   `{GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/*-context.json`, and ask which ticket
+   if more than one. A session that planned from inside a worktree could only write the
+   worktree copy, so the second glob is not optional. If both exist for one ticket, prefer the
+   worktree copy — it is the one a worktree-isolated session was able to keep current.
 3. If the context has `worktreePath` and you are not in it, `EnterWorktree` it before anything
    else.
 4. Read the doc. **The doc is the source of truth; the context file is only a cache.** If
@@ -104,7 +108,10 @@ When all chunks are ticked:
    ```
    The ledger's `subagent_total` column is the implementers' and reviewers' share.
 2. Set `lastPhase: "wf-build"` in `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`
-   (absolute path; a relative one resolves inside the worktree).
+   (absolute path; a relative one resolves inside the worktree). If you entered a worktree in
+   Step 0, this write is refused by worktree isolation — write the worktree's own
+   `.claude/workflow/{TICKET}-context.json` instead and say so in the Step 3 summary, so the
+   user knows the main-root copy is stale.
 3. Display: chunks built, commits, review verdict and passes, test result, anything handed to
    the user. Then:
    > **Next**: start a new session and run `/wf-close {TICKET}`.

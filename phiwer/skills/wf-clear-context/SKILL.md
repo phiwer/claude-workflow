@@ -20,19 +20,25 @@ $ARGUMENTS
 
 ```
 Run: git worktree list 2>/dev/null | head -1 | awk '{print $1}'
-Use the result as GIT_MAIN_ROOT. Context files live at:
+Use the result as GIT_MAIN_ROOT. Context files live in two places:
   {GIT_MAIN_ROOT}/.claude/workflow/*-context.json
+  {GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/*-context.json
 Falls back to .claude/workflow/ if git command fails.
 ```
+
+A ticket planned from inside a worktree has its context file only in the second location,
+because worktree isolation blocks writes to the main checkout. Always check both, and clear
+both copies for a ticket that has them.
 
 ### Step 1: Determine Which Context File to Clear
 
 **If a feature ID was provided in arguments** (e.g., `SF-14`):
-- Target file: `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json`
-- Delete it if it exists, report if not found
+- Target files: `{GIT_MAIN_ROOT}/.claude/workflow/{FEATURE-ID}-context.json` and
+  `{GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/{FEATURE-ID}-context.json`
+- Delete every copy that exists, report if none found
 
 **If no feature ID was provided**:
-1. Glob `{GIT_MAIN_ROOT}/.claude/workflow/*-context.json`
+1. Glob both paths listed in Step 0
 2. **If no files found**: report that no context files exist
 3. **If exactly one file found**: delete it and report
 4. **If multiple files found**: use AskUserQuestion:
