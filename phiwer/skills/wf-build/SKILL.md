@@ -93,6 +93,14 @@ When all chunks are ticked:
    plainly; a human decides.
 6. Run the project's full test and static-analysis commands (see CLAUDE.md). Delegate the run
    to a subagent that reports counts and failures only, not full logs.
+7. **Record the result in the doc.** `/wf-close` runs in a fresh session and can't see this
+   conversation, so the doc must carry the evidence. Append one line under `### Chunk progress`
+   and commit it alone (ticket prefix, e.g. `{TICKET} Record build review result`):
+   ```
+   - Build review: {CLEAN | VIOLATIONS: <residual items>} after {n} pass(es) on {base-sha}..{head-sha}; {test/static-analysis commands} {green | <failures>}
+   ```
+   `{head-sha}` is HEAD at the time of the last review and test run, before this commit. Run
+   this step whatever the outcome, including after stopping at the pass cap.
 
 ## Step 3: Record and hand off
 

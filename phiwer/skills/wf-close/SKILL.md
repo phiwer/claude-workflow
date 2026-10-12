@@ -26,9 +26,12 @@ chunk ticked; if not, point the user at `/wf-build` and stop.
 
 ## Step 1: Verify against the doc
 
-1. Read the doc's Verification section and the `/wf-build` review verdict (ask the user if it
-   isn't in the conversation or git log; don't re-run a full review that already came back
-   CLEAN).
+1. Read the doc's Verification section and the `- Build review:` line under Chunk progress,
+   which `/wf-build` writes. If it says CLEAN and green, check that nothing but the doc changed
+   after the recorded range: `git diff --stat {head-sha}..HEAD -- . ':!{doc path}'` must be
+   empty. If it is, don't re-run the review or the tests. If code changed after `{head-sha}`,
+   review only `{head-sha}..HEAD` (as in item 4) and re-run the tests. Ask the user only if
+   the line is missing (a doc built before this line existed).
 2. For each Verification item, confirm it is covered: the test exists and asserts the stated
    behaviour, or the behaviour was observed. List any gap.
 3. Compare the changed files (`git diff --stat $(git merge-base HEAD {base})..HEAD`) against the
