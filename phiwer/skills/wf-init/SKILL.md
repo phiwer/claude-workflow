@@ -105,7 +105,7 @@ To generate an agent file, write `.claude/agents/{name}.md` with this structure:
 ```markdown
 ---
 name: {agent-name}
-description: {agent focus area — used by /wf-design to pick a domain specialist for research or review}
+description: Research & review of {focus area} — {3-5 concrete topics}. {Optional routing hint: either "Use as the {security|data|api|concurrency} lens" if this agent covers one of the four lenses in wf-design/references/critic-lenses.md, or a boundary against the agent it is most often confused with, e.g. "Not domain modelling".}
 tools: Read, Glob, Grep
 model: sonnet
 ---
@@ -143,22 +143,36 @@ can talk itself past is not a gate.}
 
 ## Review Process
 
-1. Read the brief. It is either a research question with a scope, or a design doc path
-   (possibly with a lens checklist) to review.
+1. Read the brief. A brief leading with `Question:` is research; one leading with `Doc:` is
+   a review, possibly with a lens checklist.
 2. Read the doc or the code in scope.
-3. Check against your focus areas and the key patterns above.
+3. For a research question, answer it; use the focus areas and key patterns above only to
+   interpret what you find, not to audit beyond the question. For a review, check against
+   your focus areas and the key patterns above.
 4. Report in the format the brief asks for.
 
 ## Output Format
 
-Use the format the brief asks for. If it gives none: findings grouped by severity
-(Blocker / Major / Minor / Nit), each with what, a concrete failure scenario, and evidence
-(doc section or `file:line`). Report nothing for areas that are sound.
+Use the format the brief asks for. If it gives none:
+
+- **Research question:** Answer (1-3 sentences), Evidence (`file:line` for each claim),
+  Inferred, not seen (anything you concluded without direct evidence), Not found (what you
+  looked for and could not locate). Never fill a gap with a plausible guess.
+- **Review:** findings grouped by severity (Blocker / Major / Minor / Nit), each with what, a
+  concrete failure scenario, and evidence (doc section or `file:line`). Report nothing for
+  areas that are sound.
 ```
 
 Generate content for each agent using what you know about the detected stack and any
 conventions in CLAUDE.md. Make the agent content specific to this project's tech stack,
 not generic boilerplate.
+
+The descriptions are how `/wf-design` picks between these agents, so make them discriminating.
+`references/critic-lenses.md` in `wf-design` defines four lenses — security, data, api and
+concurrency — and a project agent may stand in for a lens critic when it covers the same risk.
+Work out which agent covers each lens and say so in that agent's description; a lens with no
+claimant silently falls back to the general critic, which carries no project context. Where a
+lens does not apply to this project, leave it unclaimed rather than forcing a fit.
 
 ### Step 4: Write Project Config
 
