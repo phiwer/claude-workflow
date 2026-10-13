@@ -1,6 +1,6 @@
 ---
 name: wf-init
-description: Initialize the feature workflow for a project — detects tech stack, proposes review agents (asks user to confirm), creates agent files and project-config.json.
+description: Initialize or upgrade the feature workflow for a project — detects tech stack, proposes review agents (asks user to confirm), creates agent files and project-config.json. Re-run after a plugin update to refresh generated agents to the current template without touching project-specific content.
 allowed-tools: Read, Glob, Grep, Bash, Write, AskUserQuestion
 model: sonnet
 ---
@@ -25,11 +25,16 @@ If both exist:
 - Use AskUserQuestion:
   - header: "Already configured"
   - question: "This project already has workflow config and agents. What would you like to do?"
-  - option1: label="Add missing agents only", description="Keep existing agents, generate any that are missing"
-  - option2: label="Re-run full setup", description="Regenerate all agents and overwrite project-config.json"
-  - option3: label="Cancel", description="Exit without changes"
+  - option1: label="Upgrade agents to current template", description="Refresh the generated boilerplate in existing agents to this plugin version. Project-specific content is never rewritten."
+  - option2: label="Add missing agents only", description="Keep existing agents, generate any that are missing"
+  - option3: label="Re-run full setup", description="Regenerate all agents and overwrite project-config.json"
+  - option4: label="Cancel", description="Exit without changes"
 - Exit if user selects "Cancel"
 - Set a flag `replaceAgents=true` if user selects "Re-run full setup"
+- Set a flag `upgradeOnly=true` if user selects "Upgrade agents to current template". In that
+  case **skip Steps 1, 2 and 3** (no stack detection, no agent proposal, no generation — the
+  agent roster is whatever the project already has) and run Step 3U instead, then continue
+  from Step 5. Leave `project-config.json` untouched.
 
 ### Step 1: Detect Tech Stack
 
@@ -161,7 +166,15 @@ Use the format the brief asks for. If it gives none:
 - **Review:** findings grouped by severity (Blocker / Major / Minor / Nit), each with what, a
   concrete failure scenario, and evidence (doc section or `file:line`). Report nothing for
   areas that are sound.
+
+<!-- wf-init template: {plugin version from phiwer/.claude-plugin/plugin.json} -->
 ```
+
+Everything from `## Review Process` to the trailing `<!-- wf-init template: ... -->` comment is
+the **fixed zone**: verbatim boilerplate, identical in every project, written exactly as above
+with no per-project wording. Everything before it — description, Project Context, Focus Areas,
+Key Patterns — is the **custom zone**, which is project-specific from the moment it is written.
+Step 3U relies on that split.
 
 Generate content for each agent using what you know about the detected stack and any
 conventions in CLAUDE.md. Make the agent content specific to this project's tech stack,
@@ -173,6 +186,44 @@ concurrency — and a project agent may stand in for a lens critic when it cover
 Work out which agent covers each lens and say so in that agent's description; a lens with no
 claimant silently falls back to the general critic, which carries no project context. Where a
 lens does not apply to this project, leave it unclaimed rather than forcing a fit.
+
+### Step 3U: Upgrade Existing Agents (upgradeOnly only)
+
+Run this only when `upgradeOnly` is set. It refreshes generated boilerplate and **never
+rewrites project-specific content** — the whole point is that an upgrade is safe to run on
+agents someone has spent months tuning.
+
+For each `.claude/agents/*.md` (every file, not just ones this plugin generated):
+
+1. **Locate the fixed zone**: from the line `## Review Process` to end of file. If the file has
+   no `## Review Process` heading, it was not generated from this template — leave it entirely
+   alone and list it under "Skipped" in the report. Never guess at a boundary.
+2. **Read the stamp**, if present: the trailing `<!-- wf-init template: X.Y.Z -->` comment. A
+   file with no stamp predates stamping; treat its vintage as unknown and carry on.
+3. **Compare** the file's fixed zone against the Step 3 template's fixed zone. If they already
+   match byte for byte (stamp aside), record "already current" and change nothing.
+4. **Replace** the fixed zone with the Step 3 template's version, stamped with this plugin's
+   version. Preserve everything above `## Review Process` byte for byte — frontmatter,
+   description, Project Context, Focus Areas, Key Patterns. Do not reflow, reword or reorder
+   any of it, even if it looks stale or inconsistent with the current template's guidance.
+
+Then **report, without editing**, on the custom zone. These are findings for the user to act on,
+not changes to make:
+
+- A `description` that does not start with `Research & review of` — it predates the dual-mode
+  wording and may not route correctly.
+- Any of the four lenses in `wf-design/references/critic-lenses.md` (security, data, api,
+  concurrency) that no agent's description claims.
+- An agent with no `.claude/context/{name}.md` companion, or a Project Context section with no
+  "For compact project-convention reference" line, when `.claude/context/` exists.
+
+Output a table: agent | fixed zone (upgraded from X / already current / skipped) | findings.
+Then state plainly that custom-zone findings were reported only, and that fixing one is an
+ordinary edit the user can ask for.
+
+Continue with Step 5 (permissions) and Step 6 (context excerpts), both of which are already
+idempotent. Skip Step 4 — `project-config.json` is the user's, and an upgrade must not reset
+paths they chose.
 
 ### Step 4: Write Project Config
 
@@ -306,7 +357,10 @@ Otherwise:
 
 ### Step 7: Output Summary
 
-Display:
+In `upgradeOnly` mode, display the Step 3U table instead of the block below, followed by the
+Config and Available commands sections, and note that `project-config.json` was left as it was.
+
+Otherwise display:
 
 ```
 ## Workflow initialized for {project name or directory}

@@ -39,6 +39,25 @@ Run once per project to detect the tech stack, create project-specific domain ag
 
 This creates `.claude/agents/` (e.g. `qa-engineer.md`, `backend-dev.md`) and `.claude/context/` (CLAUDE.md excerpts per agent). `/wf-close` refreshes the excerpts when it updates the project's rules.
 
+### Upgrading after a plugin update
+
+Agent files are part generated boilerplate, part project-specific content you tune over time.
+When a plugin release changes the generated part, re-run `/phiwer:wf-init` and choose
+**"Upgrade agents to current template"**:
+
+```
+/phiwer:wf-init
+```
+
+It replaces the boilerplate — everything from `## Review Process` down, carrying a
+`<!-- wf-init template: X.Y.Z -->` stamp — and leaves the description, Project Context, Focus
+Areas and Key Patterns exactly as they are. Anything it notices about the project-specific
+half (a description predating a format change, a critic lens no agent claims) is **reported,
+never edited**. Files that were not generated from the template are skipped untouched.
+
+`project-config.json` is left alone, so the upgrade can't reset paths you chose. The context
+excerpts are regenerated, as they are on any run.
+
 ### What to commit vs. ignore
 
 - **Commit** `.claude/agents/` and `.claude/context/` — the domain agents are project-shared, so the whole team gets the same specialists.
