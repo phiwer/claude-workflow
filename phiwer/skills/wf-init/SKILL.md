@@ -21,15 +21,25 @@ review.
 1. Check if `.claude/workflow/project-config.json` exists
 2. Check if `.claude/agents/` directory has any `.md` files
 
-If both exist:
-- Use AskUserQuestion:
+**If `.claude/agents/` has files** — whether or not the config exists — the project has agents
+worth protecting, so never fall through to a silent full setup. Ask first.
+
+`.claude/workflow/` is git-ignored, so a fresh clone or a new git worktree has the agents but
+no `project-config.json`. Gating on both would make the upgrade option unreachable exactly
+where this plugin expects you to work, and would regenerate tuned agents without asking. The
+upgrade path does not read `project-config.json` at all.
+
+- Use AskUserQuestion. If the config is missing, say so in the question text and note that
+  "Re-run full setup" will recreate it:
   - header: "Already configured"
-  - question: "This project already has workflow config and agents. What would you like to do?"
+  - question: "This project already has agents{, but no project-config.json (normal in a fresh clone or worktree)}. What would you like to do?"
   - option1: label="Upgrade agents to current template", description="Refresh the generated boilerplate in existing agents to this plugin version. Project-specific content is never rewritten."
   - option2: label="Add missing agents only", description="Keep existing agents, generate any that are missing"
   - option3: label="Re-run full setup", description="Regenerate all agents and overwrite project-config.json"
   - option4: label="Cancel", description="Exit without changes"
 - Exit if user selects "Cancel"
+- If only `project-config.json` is missing and the user picks an option other than "Re-run full
+  setup", carry on without it: Step 4 writes it if absent, and Step 3U does not need it.
 - Set a flag `replaceAgents=true` if user selects "Re-run full setup"
 - Set a flag `upgradeOnly=true` if user selects "Upgrade agents to current template". In that
   case **skip Steps 1, 2 and 3** (no stack detection, no agent proposal, no generation — the
