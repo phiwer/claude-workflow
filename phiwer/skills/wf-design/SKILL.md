@@ -38,12 +38,13 @@ ask for one (it names the doc, the worktree, the ledger row and the commit prefi
 Read `.claude/workflow/project-config.json` (defaults if absent):
 - `designDir` = `docs/design`
 - `designTemplate` = unset (use `references/doc-template.md` from this skill)
-- `specDir` = `docs/specs` (only checked for a pre-2.2 token ledger; see Step 8)
 - `roadmapFile` = `ROADMAP.md`
 - `worktreesEnabled` = `false`
 
 Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` → `GIT_MAIN_ROOT`. The
 context file is `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`.
+
+`oldSpecDir` = the config's `specDir` if an older config still sets it, else `docs/specs`. It is not a setting, only where versions before 2.2 kept the token ledger (Step 8).
 
 **Worktree isolation.** Once a session has called `EnterWorktree`, Claude Code refuses every
 write outside that worktree — including to `{GIT_MAIN_ROOT}`. Both the Write tool and a Bash
@@ -214,16 +215,16 @@ frontmatter.
 ## Step 8: Record and hand off
 
 1. **Ledger location.** The token ledger `{ledger}` is `{designDir}/TOKEN_LEDGER.csv`. Plugin
-   versions before 2.2 kept it at `{specDir}/TOKEN_LEDGER.csv`; if that file exists, ask the
+   versions before 2.2 kept it at `{oldSpecDir}/TOKEN_LEDGER.csv`; if that file exists, ask the
    user before recording (AskUserQuestion, header "Token ledger"): the ledger is still at
-   `{specDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it
+   `{oldSpecDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it
    to `{designDir}/TOKEN_LEDGER.csv`? If a ledger already exists there too, say the two will be
    merged by timestamp.
    - **Move it (Recommended)**: run
-     `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{specDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
+     `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{oldSpecDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
      It is a plain file move with nothing staged; `/wf-close` commits it. If it exits
      non-zero, show the user its message and use the old path for `{ledger}` this session.
-   - **Keep it in `{specDir}` for now**: `{ledger}` = `{specDir}/TOKEN_LEDGER.csv` for this
+   - **Keep it in `{oldSpecDir}` for now**: `{ledger}` = `{oldSpecDir}/TOKEN_LEDGER.csv` for this
      session only; the next session asks again.
 2. Record token usage. Use phase key `wf-design`, or `wf-design-s2`, `-s3`… if the context
    file's `tokenUsage` already has a `wf-design*` entry (resumed planning):

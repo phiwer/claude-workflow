@@ -110,17 +110,17 @@ the residue goes to you instead of looping again.
 {
   "designDir": "docs/design",
   "designTemplate": "optional/path/to/project-template.md",
-  "specDir": "docs/specs",
-  "archiveDir": "docs/specs/archive",
   "roadmapFile": "ROADMAP.md",
   "worktreesEnabled": false
 }
 ```
 
-The token ledger lives in `designDir`. `specDir` holds `SPECS_INDEX.md` (updated by `/wf-close`
-if present) and, before 2.2, the ledger: when a phase finds `{specDir}/TOKEN_LEDGER.csv` it asks
-to move it (merging if `designDir` already has one). `archiveDir` holds older specs, still
-scanned for rule citations by `/wf-close`.
+The token ledger lives in `designDir`. `docs/specs` is no longer used. Projects from before 2.2
+may still have files there, and the plugin only looks at them when they exist:
+`docs/specs/TOKEN_LEDGER.csv` (each phase offers to move it into `designDir`, merging if one is
+already there) and `docs/specs/archive` (old specs, still scanned for rule citations by
+`/wf-close`). An older config that still sets `specDir` or `archiveDir` keeps working: those
+values are used in place of the `docs/specs` paths.
 
 ### Worktrees
 

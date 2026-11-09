@@ -17,8 +17,8 @@ $ARGUMENTS
 
 ## Step 0: Config and doc
 
-Same as `/wf-build` Step 0: read config (`designDir`, `specDir`, `archiveDir` =
-`docs/specs/archive`, `roadmapFile` = `ROADMAP.md`), find the doc
+Same as `/wf-build` Step 0: read config (`designDir`, `roadmapFile` = `ROADMAP.md`) and set
+`oldSpecDir` the same way, find the doc
 and context file — globbing both `{GIT_MAIN_ROOT}/.claude/workflow/` and
 `{GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/` — and enter the worktree if one is
 recorded. The doc must be `approved` with every
@@ -69,9 +69,11 @@ contradictions (keep the newer/more specific), condense bloat. Report every chan
 Check rule citations first:
 ```bash
 CC="{SKILL_DIR}/../../scripts/check-rule-citations.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
-[ -f "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --archive-dir "{archiveDir}" --design-dir "{designDir}" \
+[ -f "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --design-dir "{designDir}" \
   || echo "check-rule-citations: script not found, skipping (best-effort)"
 ```
+The script also scans archived specs from before 2.0 under `docs/specs/archive` when that folder
+exists. If an older config still sets `archiveDir`, add `--archive-dir "{archiveDir}"`.
 Never-cited rules are candidates for the user to reconsider, not automatic deletions.
 
 If `.claude/context/` exists, regenerate `.claude/context/{agent}.md` for each agent in
@@ -79,23 +81,21 @@ If `.claude/context/` exists, regenerate `.claude/context/{agent}.md` for each a
 
 ## Step 5: Roadmap
 
-If `{roadmapFile}` exists, mark the ticket complete. If `{specDir}/SPECS_INDEX.md` exists, add
-or update the ticket's row (status `COMPLETE`, linked to the design doc), matching the existing
-columns.
+If `{roadmapFile}` exists, mark the ticket complete.
 
 ## Step 6: Token totals
 
 **Ledger location.** The token ledger `{ledger}` is `{designDir}/TOKEN_LEDGER.csv`. Plugin
-versions before 2.2 kept it at `{specDir}/TOKEN_LEDGER.csv`; if that file exists, ask the user
+versions before 2.2 kept it at `{oldSpecDir}/TOKEN_LEDGER.csv`; if that file exists, ask the user
 before recording (AskUserQuestion, header "Token ledger"): the ledger is still at
-`{specDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it to
+`{oldSpecDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it to
 `{designDir}/TOKEN_LEDGER.csv`? If a ledger already exists there too, say the two will be
 merged by timestamp.
 - **Move it (Recommended)**: run
-  `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{specDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
+  `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{oldSpecDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
   It is a plain file move with nothing staged; Step 7 commits it. If it exits non-zero, show
   the user its message and use the old path for `{ledger}`.
-- **Keep it in `{specDir}`**: `{ledger}` = `{specDir}/TOKEN_LEDGER.csv`; the next session asks
+- **Keep it in `{oldSpecDir}`**: `{ledger}` = `{oldSpecDir}/TOKEN_LEDGER.csv`; the next session asks
   again.
 
 Then, before deleting the context file:
@@ -121,8 +121,8 @@ committing.
    commit for the doc close-out including `{ledger}`, a separate one for rule changes). The
    ledger is the only durable per-phase record once the context file is deleted, so it must be
    committed, even if it was untracked before. If this or an earlier session moved the ledger
-   and `git status` shows `{specDir}/TOKEN_LEDGER.csv` as deleted, stage that deletion in the
-   same commit (`git add -A -- {specDir}/TOKEN_LEDGER.csv {designDir}/TOKEN_LEDGER.csv`) so git
+   and `git status` shows `{oldSpecDir}/TOKEN_LEDGER.csv` as deleted, stage that deletion in the
+   same commit (`git add -A -- {oldSpecDir}/TOKEN_LEDGER.csv {designDir}/TOKEN_LEDGER.csv`) so git
    records a rename.
 2. Delete the context file from **both** locations it may exist in:
    `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json` and

@@ -12,7 +12,7 @@ subagents it spawned (`<session>/subagents/agent-*.jsonl`), then:
                   artifact (used by /wf-close). The table surfaces non-cached
                   output (generated) tokens per phase alongside the gross total.
   --mode migrate-ledger : moves --from-ledger to --ledger, merging by timestamp if
-                  both exist (the 2.2 move from {specDir} to {designDir}).
+                  both exist (the 2.2 move from docs/specs to {designDir}).
 
 If --ledger is given, every --mode record call also appends one row to a git-committed CSV
 ledger (ticket, phase, who ran it, model, tokens) -- unlike the context JSON (gitignored,
@@ -195,7 +195,7 @@ def _read_ledger(path):
 
 
 def _migrate_ledger(old_path, new_path):
-    """Move a ledger from its old location (the pre-2.2 {specDir}) to the new one. If both
+    """Move a ledger from its old location (docs/specs before 2.2) to the new one. If both
     exist, merge them into new_path ordered by timestamp. Unlike recording, this is not
     best-effort: on any doubt it leaves both files untouched and exits non-zero, so the
     caller can tell the user instead of losing rows."""
@@ -378,7 +378,7 @@ def main():
                               "(e.g. {designDir}/TOKEN_LEDGER.csv); omit to skip ledger writing")
     parser.add_argument("--from-ledger", default="",
                          help="migrate-ledger only: the old ledger to move or merge into --ledger "
-                              "(e.g. {specDir}/TOKEN_LEDGER.csv)")
+                              "(e.g. docs/specs/TOKEN_LEDGER.csv)")
     parser.add_argument("--ticket", default="",
                          help="ticket id for the ledger row; defaults to the context file's "
                               "featureId if omitted")
