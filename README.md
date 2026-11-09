@@ -109,11 +109,26 @@ the residue goes to you instead of looping again.
 ```json
 {
   "designDir": "docs/design",
-  "designTemplate": "optional/path/to/project-template.md",
+  "designTemplate": "default",
   "roadmapFile": "ROADMAP.md",
   "worktreesEnabled": false
 }
 ```
+
+`designTemplate` picks the design doc template. Three are bundled:
+
+| Name | For |
+|------|-----|
+| `default` | Any project. Problem, context, plan, alternatives, chunks, verification. |
+| `frontend` | Web frontends. Adds UI states, components, state and data flow, backend contract, routing and access, translations and accessibility. |
+| `ddd-hexagonal` | **Only backends built with DDD and ports and adapters.** Adds domain language, aggregates and invariants, the transaction boundary, ports and failure semantics. For a plain layered backend, use `default`. |
+
+Any other value is a path to a project template, relative to the repo root. It is read from the
+main checkout, so an untracked template also works from a worktree. A project template must
+keep the frontmatter, Gates, Alternatives, Implementation (with Chunk progress) and As-built.
+The bundled templates give structure only; project conventions belong in `CLAUDE.md` and
+`.claude/rules/`, which every phase already follows. `/wf-init` recommends a template from the
+detected stack.
 
 The token ledger lives in `designDir`. `docs/specs` is no longer used. Projects from before 2.2
 may still have files there, and the plugin only looks at them when they exist:

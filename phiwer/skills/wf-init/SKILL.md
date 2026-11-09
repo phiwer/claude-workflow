@@ -254,11 +254,25 @@ Before writing, check:
 
 Then ask about the design doc template:
 
-Use AskUserQuestion:
+The plugin bundles three templates (in `/wf-design`'s `references/templates/`). Recommend one
+from Step 1:
+- `frontend` when the project is mainly a web frontend (Angular, React, Vue, Svelte… in
+  `package.json`), even if it also has a small server for serving it.
+- `ddd-hexagonal` only when the code shows DDD with ports and adapters: packages or folders
+  named like `domain`, `application`/`port`, `adapter`/`infrastructure`; aggregates or
+  invariants in `CLAUDE.md` or `.claude/rules/`; architecture tests such as ArchUnit. A plain
+  layered backend (controller → service → repository) is **not** this; recommend `default`.
+- `default` otherwise, or when unsure.
+
+Use AskUserQuestion, putting the recommended option first with "(Recommended)" after its label:
 - header: "Doc template"
-- question: "Design docs use the plugin's generic template. Use a project-specific template instead? (It may add sections, e.g. domain language or aggregate invariants, but must keep the frontmatter, Gates, Alternatives, Implementation with Chunk progress, and As-built.)"
-- option1: label="Plugin default", description="Leave designTemplate unset"
-- option2: label="Project template", description="Give a path to an existing template file in the repo"
+- question: "Which design doc template should /wf-design use? (A project template must keep the frontmatter, Gates, Alternatives, Implementation with Chunk progress, and As-built.)"
+- option: label="Default", description="Generic template for any project: problem, context, plan, alternatives, chunks, verification"
+- option: label="Frontend", description="Adds UI states, components, state and data flow, backend contract, routing and access, translations, accessibility"
+- option: label="DDD / hexagonal backend", description="Only for backends built with DDD and ports and adapters. Adds domain language, aggregates and invariants, transaction boundary, ports, failure semantics"
+- option: label="Project template", description="Give a path to your own template file in the repo"
+
+Set `designTemplate` to `default`, `frontend` or `ddd-hexagonal`, or to the path the user gives.
 
 Then ask about git worktrees:
 
@@ -274,7 +288,7 @@ Write `.claude/workflow/project-config.json`:
 ```json
 {
   "designDir": "{designDir}",
-  "designTemplate": "{path, or omit}",
+  "designTemplate": "{default | frontend | ddd-hexagonal | path}",
   "roadmapFile": "{roadmapFile}",
   "worktreesEnabled": {true or false}
 }
@@ -377,7 +391,8 @@ Otherwise display:
 {list each .claude/agents/{name}.md created or skipped}
 
 ### Config
-- Design directory: {designDir} (template: {designTemplate}, if set)
+- Design directory: {designDir}
+- Design doc template: {designTemplate}
 - Roadmap file: {roadmapFile}
 - Token ledger: {designDir}/TOKEN_LEDGER.csv (created on the first /wf-design — commit it like
   any other file; it's the only durable, structured, cross-feature record of what each phase

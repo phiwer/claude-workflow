@@ -1,9 +1,10 @@
-# Design doc template
+# Design doc template: default
 
-This is the plugin's generic template. A project can replace it by setting `designTemplate` in
-`.claude/workflow/project-config.json` to a file of its own; a project template may add
-sections, but must keep the frontmatter fields, Gates, Alternatives, Implementation (table and
-chunk progress) and As-built, because /wf-design, /wf-build and /wf-close depend on them.
+The plugin's generic template, for any kind of project. It is used when `designTemplate` in
+`.claude/workflow/project-config.json` is unset or `default`. The other bundled templates
+(`frontend`, `ddd-hexagonal`) and project templates add sections, but must keep the frontmatter
+fields, Gates, Alternatives, Implementation (table and chunk progress) and As-built, because
+/wf-design, /wf-build and /wf-close depend on them.
 
 Copy the block below into `{designDir}/{ticket-lower}-{short-name}.md`. Create it with
 headings only at the start of planning and fill it in as decisions are made. Write for a reader

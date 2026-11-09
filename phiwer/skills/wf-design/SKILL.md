@@ -37,12 +37,22 @@ ask for one (it names the doc, the worktree, the ledger row and the commit prefi
 
 Read `.claude/workflow/project-config.json` (defaults if absent):
 - `designDir` = `docs/design`
-- `designTemplate` = unset (use `references/doc-template.md` from this skill)
+- `designTemplate` = `default`
 - `roadmapFile` = `ROADMAP.md`
 - `worktreesEnabled` = `false`
 
 Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` → `GIT_MAIN_ROOT`. The
 context file is `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`.
+
+Resolve `designTemplate` to an absolute path `{templatePath}` now, before any worktree:
+- A bundled name (`default`, `frontend`, `ddd-hexagonal`) →
+  `{SKILL_DIR}/references/templates/{name}.md` ({SKILL_DIR} = the "Base directory for this
+  skill" shown when this skill loaded).
+- Anything else is a project template path relative to the repo root →
+  `{GIT_MAIN_ROOT}/{path}`. Resolving against the main checkout keeps an untracked template
+  usable from a worktree, which does not contain untracked files.
+- If the file does not exist, tell the user which path was missing and use the `default`
+  template.
 
 `oldSpecDir` = the config's `specDir` if an older config still sets it, else `docs/specs`. It is not a setting, only where versions before 2.2 kept the token ledger (Step 8).
 
@@ -105,8 +115,8 @@ For medium and large:
    predicted in step 1. If either differs, say so to the user and give them the one-line fix
    (you can no longer correct the file yourself):
    `! sed -i 's|<predicted>|<actual>|' .claude/workflow/{TICKET}-context.json`
-3. Create `{designDir}/{ticket-lower}-{short-name}.md` from `designTemplate` (or this skill's
-   `references/doc-template.md`), headings and frontmatter only, `status: draft`.
+3. Create `{designDir}/{ticket-lower}-{short-name}.md` from `{templatePath}` (Step 0),
+   headings and frontmatter only, `status: draft`.
 4. If images were attached, save them under `{designDir}/{ticket-lower}-assets/` and transcribe
    every label, arrow and annotation into the doc's Context section. Chat images don't survive
    the session; the transcription is what the Goldfish and implementer will see.
