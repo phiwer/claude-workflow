@@ -75,7 +75,7 @@ excerpts are regenerated, as they are on any run.
 
 | Skill | Model | What it does |
 |---|---|---|
-| `/phiwer:wf-design` | Opus | The **Elephant**: proposes a tier (small / medium / large), creates the design doc early and keeps it current, argues the design with you toward six gates, dispatches **researchers**, tests the doc with a **goldfish** (fresh subagent given only the doc path), runs a **critic** for large tier (plus up to two opt-in lens critics, e.g. security or data, when the design has those risks), and gets your approval. |
+| `/phiwer:wf-design` | Opus | The **Elephant**: proposes a tier (small / medium / large), creates the spec (design doc) early and keeps it current, argues the design with you toward six gates, dispatches **researchers**, tests the doc with a **goldfish** (fresh subagent given only the doc path), runs a **critic** for large tier (plus up to two opt-in lens critics, e.g. security or data, when the design has those risks), and gets your approval. |
 | `/phiwer:wf-build` | Sonnet | New session. Resumes from the doc, dispatches one fresh **implementer** per chunk (Opus if the doc sets `implementer: opus`), reviews and commits each chunk, handles STOPPED escalations with you, then runs a capped rule-compliance review (**code-reviewer**). |
 | `/phiwer:wf-close` | Sonnet | Verifies against the doc, fills in As-built, sets `status: built`, writes a short retrospective into the doc, feeds lessons into CLAUDE.md / `.claude/rules`, records token totals. |
 
@@ -108,7 +108,7 @@ the residue goes to you instead of looping again.
 
 ```json
 {
-  "designDir": "docs/design",
+  "specDir": "docs/specs",
   "designTemplate": "default",
   "roadmapFile": "ROADMAP.md",
   "worktreesEnabled": false
@@ -130,12 +130,35 @@ The bundled templates give structure only; project conventions belong in `CLAUDE
 `.claude/rules/`, which every phase already follows. `/wf-init` recommends a template from the
 detected stack.
 
-The token ledger lives in `designDir`. `docs/specs` is no longer used. Projects from before 2.2
-may still have files there, and the plugin only looks at them when they exist:
-`docs/specs/TOKEN_LEDGER.csv` (each phase offers to move it into `designDir`, merging if one is
-already there) and `docs/specs/archive` (old specs, still scanned for rule citations by
-`/wf-close`). An older config that still sets `specDir` or `archiveDir` keeps working: those
-values are used in place of the `docs/specs` paths.
+### Specs
+
+A spec is the design doc `/wf-design` writes. Specs are grouped by ticket prefix, so each
+team's specs share a folder, and the token ledger is one file per repo:
+
+```
+docs/specs/
+  TOKEN_LEDGER.csv
+  tra/
+    tra-1544-schedule-without-file-proxy.md
+    tra-1544-assets/          (only when the ticket had images)
+  been/
+    been-7192-retrigger-order-events.md
+```
+
+Specs are committed, so developers can review them and later sessions can read why the code is
+the way it is: a commit's ticket prefix leads straight to its spec. `/wf-design` reads earlier
+specs for the area it is changing and lists them under Earlier specs in Context.
+
+Specs are never moved to an archive, because moving them breaks every link to them. Their
+`status` says whether they still hold: `built` specs are history (As-built overrides Plan, and
+the code wins when they disagree), and when a later ticket replaces one, `/wf-close` of that
+ticket sets it to `superseded` with `superseded-by: <TICKET>`. A ticket that changes part of
+an earlier spec adds a "Changed by" line to its As-built instead.
+
+Before 2.5, specs went into a flat `designDir` (default `docs/design`). They are still found
+there; `/wf-init` offers to move the finished ones, and `/wf-close` moves an in-flight ticket's
+spec when it closes. `docs/specs/archive` from the pre-2.0 pipeline stays where it is and is
+still scanned for rule citations.
 
 ### Worktrees
 
@@ -151,7 +174,7 @@ flight at once without overwriting each other.
 
 Each session (design, build, close, and any resumed `-s2`, `-s3` sessions) records its token
 usage — main session **plus every subagent it spawned** — into the context file and a row in
-`{designDir}/TOKEN_LEDGER.csv`. `/wf-close` writes an all-phases total into the doc and a final
+`{specDir}/TOKEN_LEDGER.csv`. `/wf-close` writes an all-phases total into the doc and a final
 `ALL_PHASES_TOTAL` ledger row. Commit the ledger: it is the only durable, cross-feature record
 of what each ticket cost and who ran it. Best-effort: if the helper
 (`scripts/record-token-usage.py`) is missing, the session proceeds without recording.

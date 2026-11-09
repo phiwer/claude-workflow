@@ -17,8 +17,8 @@ $ARGUMENTS
 
 ## Step 0: Config and doc
 
-Same as `/wf-build` Step 0: read config (`designDir`, `roadmapFile` = `ROADMAP.md`) and set
-`oldSpecDir` the same way, find the doc
+Same as `/wf-build` Step 0: read config (`specDir`, `roadmapFile` = `ROADMAP.md`) and set
+`{prefix}` and `{legacyDocDir}` the same way, find the doc
 and context file — globbing both `{GIT_MAIN_ROOT}/.claude/workflow/` and
 `{GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/` — and enter the worktree if one is
 recorded. The doc must be `approved` with every
@@ -47,6 +47,15 @@ doc), or accept and record under Open questions.
 - Fill in As-built: deviations from the plan and why, anything a future reader would otherwise
   be misled by. Remove nothing from Alternatives.
 - Set `status: built`, bump `updated:`.
+- **Earlier specs.** For each spec the doc's Context lists under Earlier specs as superseded by
+  this ticket, set its `status: superseded` and add `superseded-by: {TICKET}` to its
+  frontmatter. For each one this ticket changes in part, add a line to its As-built:
+  `Changed by {TICKET} ({doc path}): <what changed>`. Edit nothing else in them: they are
+  history. Specs are never moved to an archive; their status says whether they still hold.
+- **Legacy location.** If the doc is still under `{legacyDocDir}` (planned before 2.5), move
+  it, and its `{ticket-lower}-assets/` folder if any, to `{specDir}/{prefix}/` (`git mv` if
+  tracked, else `mv`), and update links to its old path in Markdown files and in the context
+  file's `docPath`. Use the new path as `{doc path}` from here on.
 
 ## Step 3: Retrospective (short, in the doc)
 
@@ -69,11 +78,13 @@ contradictions (keep the newer/more specific), condense bloat. Report every chan
 Check rule citations first:
 ```bash
 CC="{SKILL_DIR}/../../scripts/check-rule-citations.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
-[ -f "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --design-dir "{designDir}" \
+[ -f "$CC" ] && python3 "$CC" --rules CLAUDE.md .claude/rules/*.md --design-dir "{specDir}" \
   || echo "check-rule-citations: script not found, skipping (best-effort)"
 ```
-The script also scans archived specs from before 2.0 under `docs/specs/archive` when that folder
-exists. If an older config still sets `archiveDir`, add `--archive-dir "{archiveDir}"`.
+It scans every spec under `{specDir}`, including `{specDir}/archive` from before 2.0, once each.
+If an older config sets `archiveDir` to somewhere outside `{specDir}`, add
+`--archive-dir "{archiveDir}"`. If specs are still under `{legacyDocDir}`, run it a second time
+with `--design-dir "{legacyDocDir}"` and merge the counts.
 Never-cited rules are candidates for the user to reconsider, not automatic deletions.
 
 If `.claude/context/` exists, regenerate `.claude/context/{agent}.md` for each agent in
@@ -85,24 +96,11 @@ If `{roadmapFile}` exists, mark the ticket complete.
 
 ## Step 6: Token totals
 
-**Ledger location.** The token ledger `{ledger}` is `{designDir}/TOKEN_LEDGER.csv`. Plugin
-versions before 2.2 kept it at `{oldSpecDir}/TOKEN_LEDGER.csv`; if that file exists, ask the user
-before recording (AskUserQuestion, header "Token ledger"): the ledger is still at
-`{oldSpecDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it to
-`{designDir}/TOKEN_LEDGER.csv`? If a ledger already exists there too, say the two will be
-merged by timestamp.
-- **Move it (Recommended)**: run
-  `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{oldSpecDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
-  It is a plain file move with nothing staged; Step 7 commits it. If it exits non-zero, show
-  the user its message and use the old path for `{ledger}`.
-- **Keep it in `{oldSpecDir}`**: `{ledger}` = `{oldSpecDir}/TOKEN_LEDGER.csv`; the next session asks
-  again.
-
-Then, before deleting the context file:
+Before deleting the context file:
 ```bash
 TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
 CTX="{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json"
-LEDGER="{ledger}"
+LEDGER="{specDir}/TOKEN_LEDGER.csv"
 if [ -f "$TU" ]; then
   python3 "$TU" --phase wf-close --context "$CTX" --ledger "$LEDGER" --ticket "{TICKET}"
   python3 "$TU" --mode total --context "$CTX" --artifact "{doc path}" --ledger "$LEDGER" --ticket "{TICKET}"
@@ -118,12 +116,10 @@ committing.
 ## Step 7: Commit and finish
 
 1. Commit the doc, rule, roadmap and ledger changes following the project's commit rules (one
-   commit for the doc close-out including `{ledger}`, a separate one for rule changes). The
-   ledger is the only durable per-phase record once the context file is deleted, so it must be
-   committed, even if it was untracked before. If this or an earlier session moved the ledger
-   and `git status` shows `{oldSpecDir}/TOKEN_LEDGER.csv` as deleted, stage that deletion in the
-   same commit (`git add -A -- {oldSpecDir}/TOKEN_LEDGER.csv {designDir}/TOKEN_LEDGER.csv`) so git
-   records a rename.
+   commit for the doc close-out including `{specDir}/TOKEN_LEDGER.csv`, any earlier specs updated
+   in Step 2 and, if the doc moved, the old path's deletion; a separate one for rule changes).
+   The ledger is the only durable per-phase record once the context file is deleted, so it must
+   be committed, even if it was untracked before.
 2. Delete the context file from **both** locations it may exist in:
    `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json` and
    `{worktreePath}/.claude/workflow/{TICKET}-context.json`. If you are inside the worktree,

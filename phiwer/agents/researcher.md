@@ -17,6 +17,10 @@ question asks for options; the design happens elsewhere.
 - Prefer reading the code over trusting names, comments and READMEs, which may be stale. If
   documentation and code disagree, report both.
 - Stop when the question is answered. Don't map the whole module when one call path was asked for.
+- Specs (design docs, by default under `docs/specs/<ticket prefix>/`) explain why code is the way
+  it is, not how it works today. Read their frontmatter `status` first: in a `built` spec the
+  As-built section overrides the Plan; a `superseded` spec only matters for the spec its
+  `superseded-by` names. Cite the ticket, and say when a spec and the code disagree.
 
 ## Report format
 

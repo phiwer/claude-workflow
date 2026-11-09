@@ -8,7 +8,7 @@ flow, the backend contract, routing and access, translations and accessibility. 
 Keep the frontmatter, Gates, Alternatives, Implementation (table and chunk progress) and
 As-built: /wf-design, /wf-build and /wf-close depend on them.
 
-Copy the block below into `{designDir}/{ticket-lower}-{short-name}.md`. Create it with
+Copy the block below into `{specDir}/{prefix}/{ticket-lower}-{short-name}.md`. Create it with
 headings only at the start of planning and fill it in as decisions are made. Write for a reader
 with no access to the planning conversation. Delete every section marked *(if applicable)* that
 does not apply; an empty heading invites the implementer to invent content.
@@ -22,7 +22,8 @@ them here.
 ---
 title: <Feature name, as the user would describe it>
 ticket: <TICKET-ID>
-status: draft        # draft | approved | built. Only the user sets approved.
+status: draft        # draft | approved | built | superseded. Only the user sets approved.
+superseded-by:       # set by /wf-close of the ticket that replaces this one
 tier: medium         # medium | large
 implementer: sonnet  # sonnet | opus. opus only for high-stakes tickets; see /wf-build.
 apps: <the app(s) or shared package(s) this changes>
@@ -47,12 +48,15 @@ How the relevant screens and code work today, with file references (`path/to/fil
 where useful). Name the route, the components, where the data comes from, and the backend
 endpoints involved.
 
+Earlier specs this builds on, with what each still says that matters here:
+- `<TICKET>` (`<path>`): <what it decided>. <superseded by this | changed: <what> | still holds>
+
 ## Assumptions
 - <assumption>: verified in `<file>` / accepted risk / removed
 
 ## Screens and UI states (if applicable)
 What the user sees and does, step by step. If mock-ups or screenshots were attached, they are
-saved under `{designDir}/{ticket-lower}-assets/` and every label, button and annotation is
+saved under `{specDir}/{prefix}/{ticket-lower}-assets/` and every label, button and annotation is
 transcribed here; the images alone are not enough.
 
 For each screen or component that loads or submits data:

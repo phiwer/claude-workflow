@@ -36,13 +36,22 @@ ask for one (it names the doc, the worktree, the ledger row and the commit prefi
 ## Step 0: Config
 
 Read `.claude/workflow/project-config.json` (defaults if absent):
-- `designDir` = `docs/design`
+- `specDir` = `docs/specs`
 - `designTemplate` = `default`
 - `roadmapFile` = `ROADMAP.md`
 - `worktreesEnabled` = `false`
 
 Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` → `GIT_MAIN_ROOT`. The
 context file is `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`.
+
+**Spec layout.** Specs (the design docs this skill writes) are grouped by ticket prefix, so
+each team's specs share a folder: `{prefix}` is the ticket ID's part before the first `-`,
+lowercased (`TRA-1544` → `tra`), and the spec is
+`{specDir}/{prefix}/{ticket-lower}-{short-name}.md`. The token ledger is one file for the
+whole repo, `{specDir}/TOKEN_LEDGER.csv`. Versions before 2.5 wrote specs to a flat `designDir`
+(default `docs/design`); `{legacyDocDir}` = the config's `designDir` if set, else
+`docs/design`. A spec still there is found and worked on in place; `/wf-init` moves the
+finished ones and `/wf-close` moves a ticket's spec when it closes.
 
 Resolve `designTemplate` to an absolute path `{templatePath}` now, before any worktree:
 - A bundled name (`default`, `frontend`, `ddd-hexagonal`) →
@@ -53,8 +62,6 @@ Resolve `designTemplate` to an absolute path `{templatePath}` now, before any wo
   usable from a worktree, which does not contain untracked files.
 - If the file does not exist, tell the user which path was missing and use the `default`
   template.
-
-`oldSpecDir` = the config's `specDir` if an older config still sets it, else `docs/specs`. It is not a setting, only where versions before 2.2 kept the token ledger (Step 8).
 
 **Worktree isolation.** Once a session has called `EnterWorktree`, Claude Code refuses every
 write outside that worktree — including to `{GIT_MAIN_ROOT}`. Both the Write tool and a Bash
@@ -67,8 +74,8 @@ override) the user's description.
 
 ## Step 1: Resume or start
 
-- If a doc for this ticket exists (glob `{designDir}/{ticket-lower}-*.md`, or `docPath` in the
-  context file), read it and the files it references, then tell the user in a few sentences
+- If a doc for this ticket exists (`docPath` in the context file, else glob
+  `{specDir}/{prefix}/{ticket-lower}-*.md`, else `{legacyDocDir}/{ticket-lower}-*.md`), read it and the files it references, then tell the user in a few sentences
   where things stand: status, which gates are met, what is open. If `worktreePath` is set in
   the context and you are not in it, `EnterWorktree` it first. Continue from there.
 - If the doc is `approved` or `built`, say so and point at `/wf-build` or `/wf-close` instead
@@ -103,7 +110,7 @@ For medium and large:
    {
      "featureId": "{TICKET}",
      "docPath": "{doc path, relative to repo root}",
-     "designDir": "{designDir}",
+     "specDir": "{specDir}",
      "tier": "medium | large",
      "lastPhase": "wf-design",
      "worktreePath": "{if any}",
@@ -115,9 +122,9 @@ For medium and large:
    predicted in step 1. If either differs, say so to the user and give them the one-line fix
    (you can no longer correct the file yourself):
    `! sed -i 's|<predicted>|<actual>|' .claude/workflow/{TICKET}-context.json`
-3. Create `{designDir}/{ticket-lower}-{short-name}.md` from `{templatePath}` (Step 0),
+3. Create `{specDir}/{prefix}/{ticket-lower}-{short-name}.md` from `{templatePath}` (Step 0),
    headings and frontmatter only, `status: draft`.
-4. If images were attached, save them under `{designDir}/{ticket-lower}-assets/` and transcribe
+4. If images were attached, save them under `{specDir}/{prefix}/{ticket-lower}-assets/` and transcribe
    every label, arrow and annotation into the doc's Context section. Chat images don't survive
    the session; the transcription is what the Goldfish and implementer will see.
 
@@ -145,6 +152,14 @@ How to behave while planning:
 - **Don't guess about the system.** If you are unsure how something works, say so and either
   read the code or dispatch the researcher. Wrong beliefs about the system at this stage turn
   into wrong code later. Unverified load-bearing claims go in Assumptions, marked as such.
+- **Read the history.** Earlier specs say why the code is the way it is. Find the ones for the
+  area you are changing: tickets in `git log --format=%s -- <files>` for the files in Context,
+  then their specs under `{specDir}/*/` (and `{legacyDocDir}`), plus a grep of `{specDir}` for
+  those paths. Read them as history, not as the current truth: a `built` spec's As-built
+  overrides its Plan, the code wins when they disagree, and a `superseded` spec only matters
+  for the `superseded-by` link it points to. List the ones you relied on under Earlier specs in
+  Context. If this design replaces an earlier spec's behaviour, mark it `superseded by this` there;
+  if it changes part of it, say what. `/wf-close` updates those specs once this one is built.
 - **Record the losers.** Every rejected alternative goes in the doc with the reason it lost.
   This prevents the same idea from being re-proposed during implementation.
 - **Respect the project's rules.** The design must be implementable without breaking
@@ -224,30 +239,18 @@ frontmatter.
 
 ## Step 8: Record and hand off
 
-1. **Ledger location.** The token ledger `{ledger}` is `{designDir}/TOKEN_LEDGER.csv`. Plugin
-   versions before 2.2 kept it at `{oldSpecDir}/TOKEN_LEDGER.csv`; if that file exists, ask the
-   user before recording (AskUserQuestion, header "Token ledger"): the ledger is still at
-   `{oldSpecDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it
-   to `{designDir}/TOKEN_LEDGER.csv`? If a ledger already exists there too, say the two will be
-   merged by timestamp.
-   - **Move it (Recommended)**: run
-     `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{oldSpecDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
-     It is a plain file move with nothing staged; `/wf-close` commits it. If it exits
-     non-zero, show the user its message and use the old path for `{ledger}` this session.
-   - **Keep it in `{oldSpecDir}` for now**: `{ledger}` = `{oldSpecDir}/TOKEN_LEDGER.csv` for this
-     session only; the next session asks again.
-2. Record token usage. Use phase key `wf-design`, or `wf-design-s2`, `-s3`… if the context
+1. Record token usage. Use phase key `wf-design`, or `wf-design-s2`, `-s3`… if the context
    file's `tokenUsage` already has a `wf-design*` entry (resumed planning):
    ```bash
    TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
    if [ -f "$TU" ]; then
-     python3 "$TU" --phase {phase-key} --context "{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json" --ledger "{ledger}" --ticket "{TICKET}"
+     python3 "$TU" --phase {phase-key} --context "{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{TICKET}"
    else
      echo "token-usage: script not found, skipping (best-effort)"
    fi
    ```
    Also do this before suggesting the user continue planning in a fresh session.
-3. Display:
+2. Display:
    > Design approved: `{doc path}`
    >
    > **Next**: start a new session and run `/wf-build {TICKET}`. It works from the doc alone.

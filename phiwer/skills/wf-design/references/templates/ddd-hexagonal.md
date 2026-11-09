@@ -14,7 +14,7 @@ with `"designTemplate": "ddd-hexagonal"` in `.claude/workflow/project-config.jso
 Keep the frontmatter, Gates, Alternatives, Implementation (table and chunk progress) and
 As-built: /wf-design, /wf-build and /wf-close depend on them.
 
-Copy the block below into `{designDir}/{ticket-lower}-{short-name}.md`. Create it with
+Copy the block below into `{specDir}/{prefix}/{ticket-lower}-{short-name}.md`. Create it with
 headings only at the start of planning and fill it in as decisions are made. Write for a reader
 with no access to the planning conversation. Delete every section marked *(if applicable)* that
 does not apply; an empty heading invites the implementer to invent content.
@@ -27,7 +27,8 @@ restating them here.
 ---
 title: <Feature name, as a verb in domain language>
 ticket: <TICKET-ID>
-status: draft        # draft | approved | built. Only the user sets approved.
+status: draft        # draft | approved | built | superseded. Only the user sets approved.
+superseded-by:       # set by /wf-close of the ticket that replaces this one
 tier: medium         # medium | large
 implementer: sonnet  # sonnet | opus. opus only for high-stakes tickets; see /wf-build.
 bounded-context: <context>
@@ -50,6 +51,9 @@ updated: <YYYY-MM-DD>
 ## Context
 How the relevant parts of the system work today, with file references
 (`path/to/File.java:line` where useful). Name upstream/downstream systems and who owns them.
+
+Earlier specs this builds on, with what each still says that matters here:
+- `<TICKET>` (`<path>`): <what it decided>. <superseded by this | changed: <what> | still holds>
 
 ## Assumptions
 - <assumption>: verified in `<file>` / accepted risk / removed

@@ -11,8 +11,6 @@ subagents it spawned (`<session>/subagents/agent-*.jsonl`), then:
                   "## Token Usage (all phases)" grand-total table into the
                   artifact (used by /wf-close). The table surfaces non-cached
                   output (generated) tokens per phase alongside the gross total.
-  --mode migrate-ledger : moves --from-ledger to --ledger, merging by timestamp if
-                  both exist (the 2.2 move from docs/specs to {designDir}).
 
 If --ledger is given, every --mode record call also appends one row to a git-committed CSV
 ledger (ticket, phase, who ran it, model, tokens) -- unlike the context JSON (gitignored,
@@ -188,44 +186,6 @@ def _append_ledger(ledger_path, row):
         print(f"token-usage: could not write ledger {ledger_path}: {exc}", file=sys.stderr)
 
 
-def _read_ledger(path):
-    with open(path, encoding="utf-8", newline="") as handle:
-        rows = list(csv.reader(handle))
-    return (tuple(rows[0]) if rows else ()), [row for row in rows[1:] if row]
-
-
-def _migrate_ledger(old_path, new_path):
-    """Move a ledger from its old location (docs/specs before 2.2) to the new one. If both
-    exist, merge them into new_path ordered by timestamp. Unlike recording, this is not
-    best-effort: on any doubt it leaves both files untouched and exits non-zero, so the
-    caller can tell the user instead of losing rows."""
-    if not os.path.exists(old_path):
-        print(f"token-usage: no ledger at {old_path}, nothing to migrate")
-        return 0
-    os.makedirs(os.path.dirname(new_path) or ".", exist_ok=True)
-    if not os.path.exists(new_path):
-        os.replace(old_path, new_path)
-        print(f"token-usage: moved {old_path} -> {new_path}")
-        return 0
-    old_header, old_rows = _read_ledger(old_path)
-    new_header, new_rows = _read_ledger(new_path)
-    if old_header != new_header:
-        print(f"token-usage: ledger headers differ, not merging {old_path} into {new_path}",
-              file=sys.stderr)
-        return 1
-    # Stable sort on the ISO-8601 UTC timestamp column keeps same-second rows in file order.
-    merged = sorted(old_rows + new_rows, key=lambda row: row[0])
-    tmp_path = f"{new_path}.tmp"
-    with open(tmp_path, "w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(new_header)
-        writer.writerows(merged)
-    os.replace(tmp_path, new_path)
-    os.remove(old_path)
-    print(f"token-usage: merged {len(old_rows)} rows from {old_path} into {new_path}")
-    return 0
-
-
 def _load_context(path):
     if os.path.exists(path):
         try:
@@ -369,29 +329,18 @@ def _total(args):
 def main():
     parser = argparse.ArgumentParser(description="Record workflow phase token usage.")
     parser.add_argument("--phase", default="", help="phase key, e.g. wf-build")
-    parser.add_argument("--context", default="", help="path to {FEATURE-ID}-context.json "
-                                                      "(required except for migrate-ledger)")
+    parser.add_argument("--context", required=True, help="path to {FEATURE-ID}-context.json")
     parser.add_argument("--artifact", default="", help="phase artifact markdown file")
-    parser.add_argument("--mode", choices=["record", "total", "migrate-ledger"], default="record")
+    parser.add_argument("--mode", choices=["record", "total"], default="record")
     parser.add_argument("--ledger", default="",
                          help="path to a git-committed CSV ledger to append this row to "
-                              "(e.g. {designDir}/TOKEN_LEDGER.csv); omit to skip ledger writing")
-    parser.add_argument("--from-ledger", default="",
-                         help="migrate-ledger only: the old ledger to move or merge into --ledger "
-                              "(e.g. docs/specs/TOKEN_LEDGER.csv)")
+                              "(e.g. {specDir}/TOKEN_LEDGER.csv); omit to skip ledger writing")
     parser.add_argument("--ticket", default="",
                          help="ticket id for the ledger row; defaults to the context file's "
                               "featureId if omitted")
     args = parser.parse_args()
 
-    if args.mode == "migrate-ledger":
-        if not args.from_ledger or not args.ledger:
-            parser.error("migrate-ledger needs --from-ledger and --ledger")
-        sys.exit(_migrate_ledger(args.from_ledger, args.ledger))
-    if not args.context:
-        parser.error("--context is required")
-
-    cfg =os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
+    cfg = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
     sid = os.environ.get("CLAUDE_CODE_SESSION_ID", "")
 
     if args.mode == "total":

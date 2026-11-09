@@ -98,14 +98,20 @@ def _find_citations(archive_dir, design_dir=None):
     """{ticket: {citing_ticket: [file, ...]}} -- every OTHER ticket's phase artifact (or
     design doc) that mentions this ticket's tag."""
     citations = {}
-    paths = [(p, False) for p in glob.glob(os.path.join(archive_dir, "**", "*_PHASE*.md"), recursive=True)]
+    # The design dir (the spec dir since 2.5) usually contains the archive, so a file can match
+    # both globs: count each file once, as an archived phase artifact if it is one.
+    paths = {os.path.normpath(p): False
+             for p in glob.glob(os.path.join(archive_dir, "**", "*_PHASE*.md"), recursive=True)}
     if design_dir:
-        paths += [(p, True) for p in glob.glob(os.path.join(design_dir, "**", "*.md"), recursive=True)]
-    for path, is_design_doc in paths:
+        for p in glob.glob(os.path.join(design_dir, "**", "*.md"), recursive=True):
+            paths.setdefault(os.path.normpath(p), True)
+    for path, is_design_doc in sorted(paths.items()):
         content = _read(path)
         if not content:
             continue
         owning_ticket = _ticket_from_design_doc(path, content) if is_design_doc else _ticket_from_path(path)
+        if not owning_ticket:
+            continue  # an index, template or note: it lists tickets, it doesn't cite rules
         for mentioned in set(TICKET_IN_TEXT.findall(content)):
             if owning_ticket and mentioned.upper() == owning_ticket.upper():
                 continue  # a ticket's own artifacts always mention itself; not a citation

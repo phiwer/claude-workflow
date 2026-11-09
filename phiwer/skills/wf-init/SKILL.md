@@ -43,8 +43,8 @@ upgrade path does not read `project-config.json` at all.
 - Set a flag `replaceAgents=true` if user selects "Re-run full setup"
 - Set a flag `upgradeOnly=true` if user selects "Upgrade agents to current template". In that
   case **skip Steps 1, 2 and 3** (no stack detection, no agent proposal, no generation — the
-  agent roster is whatever the project already has) and run Step 3U instead, then continue
-  from Step 5. Leave `project-config.json` untouched.
+  agent roster is whatever the project already has) and run Step 3U instead, then Step 4b,
+  then continue from Step 5. Leave `project-config.json` untouched.
 
 ### Step 1: Detect Tech Stack
 
@@ -242,14 +242,14 @@ Ask the user to confirm path defaults:
 Use AskUserQuestion:
 - header: "Project paths"
 - question: "Confirm or adjust the workflow paths for this project:"
-- option1: label="Use defaults (docs/design, ROADMAP.md)", description="designDir=docs/design (design docs and the token ledger), roadmapFile=ROADMAP.md"
-- option2: label="Customize paths", description="Enter custom paths for design docs and the roadmap file"
+- option1: label="Use defaults (docs/specs, ROADMAP.md)", description="specDir=docs/specs: each spec goes in a folder per ticket prefix, e.g. docs/specs/tra/tra-1544-short-name.md, and the token ledger is docs/specs/TOKEN_LEDGER.csv. roadmapFile=ROADMAP.md"
+- option2: label="Customize paths", description="Enter custom paths for the spec directory and the roadmap file"
 
 If "Use defaults" — write config with defaults.
 If "Customize paths" — ask a follow-up for each path (or accept an "Other" text input).
 
 Before writing, check:
-- Does `{designDir}` exist? Note it will be created by the first `/wf-design`.
+- Does `{specDir}` exist? Note it will be created by the first `/wf-design`.
 - Does `{roadmapFile}` exist? Optional; `/wf-design` uses a ticket's roadmap entry when present.
 
 Then ask about the design doc template:
@@ -287,7 +287,7 @@ Set `worktreesEnabled` to `true` or `false` accordingly.
 Write `.claude/workflow/project-config.json`:
 ```json
 {
-  "designDir": "{designDir}",
+  "specDir": "{specDir}",
   "designTemplate": "{default | frontend | ddd-hexagonal | path}",
   "roadmapFile": "{roadmapFile}",
   "worktreesEnabled": {true or false}
@@ -304,6 +304,32 @@ must not be shared — unlike `.claude/agents/` and `.claude/context/`, which ar
 3. If no existing line matches `.claude/workflow/` (or a broader `.claude/` ignore that
    already covers it), append `.claude/workflow/` on its own line. Do not duplicate an entry
    that is already present, and do not remove or reorder existing lines.
+
+### Step 4b: Move specs to the per-prefix layout
+
+Before 2.5, specs went into a flat `designDir` (default `docs/design`). Now each lives in
+`{specDir}/{prefix}/`, where `{prefix}` is the ticket ID's part before the first `-`,
+lowercased (`TRA-1544` → `tra`). Runs in every mode, including the agent upgrade.
+
+1. `{legacyDocDir}` = the config's `designDir` if set, else `docs/design`. If it does not
+   exist, or is the same folder as `{specDir}`, skip this step.
+2. Specs are the `{legacyDocDir}/*.md` files whose frontmatter has a `ticket:`. Leave every
+   other file (templates, notes) where it is, and list them for the user.
+3. Leave specs of tickets still in flight: those with a context file in (`{GIT_MAIN_ROOT}` =
+   `git worktree list 2>/dev/null | head -1 | awk '{print $1}'`)
+   `{GIT_MAIN_ROOT}/.claude/workflow/` or `{GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/`.
+   `/wf-close` moves each one when its ticket closes.
+4. If any specs remain to move, use AskUserQuestion:
+   - header: "Move specs"
+   - question: "Found {n} specs in {legacyDocDir}. Move them to {specDir}/<ticket prefix>/, e.g.
+     {specDir}/tra/tra-1544-short-name.md? ({m} in-flight tickets stay until /wf-close.)"
+   - option1: label="Move them (Recommended)", description="git mv for tracked files, mv for untracked ones, including each ticket's -assets folder. Nothing is committed."
+   - option2: label="Leave them", description="They are still found where they are; /wf-init asks again next time"
+5. On "Move them": move each spec and its `{ticket-lower}-assets/` folder to
+   `{specDir}/{prefix}/`, with `git mv` if tracked, else `mv`. Then find links to the old
+   paths in Markdown files (`CLAUDE.md`, `.claude/rules/`, other specs; relative links too,
+   searching by file name) and update them. Do not commit; list what moved and which links
+   changed, and tell the user to commit it as its own change.
 
 ### Step 5: Write Skill Permissions
 
@@ -391,10 +417,10 @@ Otherwise display:
 {list each .claude/agents/{name}.md created or skipped}
 
 ### Config
-- Design directory: {designDir}
+- Spec directory: {specDir} (specs in {specDir}/<ticket prefix>/)
 - Design doc template: {designTemplate}
 - Roadmap file: {roadmapFile}
-- Token ledger: {designDir}/TOKEN_LEDGER.csv (created on the first /wf-design — commit it like
+- Token ledger: {specDir}/TOKEN_LEDGER.csv (created on the first /wf-design — commit it like
   any other file; it's the only durable, structured, cross-feature record of what each phase
   cost and who ran it, unlike the per-feature context.json which is gitignored and deleted by
   /wf-close)

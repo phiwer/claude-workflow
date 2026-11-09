@@ -6,7 +6,7 @@ The plugin's generic template, for any kind of project. It is used when `designT
 fields, Gates, Alternatives, Implementation (table and chunk progress) and As-built, because
 /wf-design, /wf-build and /wf-close depend on them.
 
-Copy the block below into `{designDir}/{ticket-lower}-{short-name}.md`. Create it with
+Copy the block below into `{specDir}/{prefix}/{ticket-lower}-{short-name}.md`. Create it with
 headings only at the start of planning and fill it in as decisions are made. Write for a reader
 with no access to the planning conversation.
 
@@ -14,7 +14,8 @@ with no access to the planning conversation.
 ---
 title: <Feature name>
 ticket: <TICKET-ID>
-status: draft        # draft | approved | built. Only the user sets approved.
+status: draft        # draft | approved | built | superseded. Only the user sets approved.
+superseded-by:       # set by /wf-close of the ticket that replaces this one
 tier: medium         # medium | large
 implementer: sonnet  # sonnet | opus. opus only for high-stakes tickets; see /wf-build.
 updated: <YYYY-MM-DD>
@@ -36,6 +37,9 @@ updated: <YYYY-MM-DD>
 ## Context
 How the relevant parts of the system work today, with file references
 (`path/to/file.ext:line` where useful). Only what a reader needs to understand this change.
+
+Earlier specs this builds on, with what each still says that matters here:
+- `<TICKET>` (`<path>`): <what it decided>. <superseded by this | changed: <what> | still holds>
 
 ## Assumptions
 - <assumption>: verified in `<file>` / accepted risk / removed
