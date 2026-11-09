@@ -38,7 +38,8 @@ ask for one (it names the doc, the worktree, the ledger row and the commit prefi
 Read `.claude/workflow/project-config.json` (defaults if absent):
 - `specDir` = `docs/specs`
 - `designTemplate` = `default`
-- `roadmapFile` = `ROADMAP.md`
+- `roadmapFile` = unset. Optional: a file in the repo that tracks tickets, for projects without
+  an issue tracker. Unset means no roadmap is read.
 - `worktreesEnabled` = `false`
 
 Run `git worktree list 2>/dev/null | head -1 | awk '{print $1}'` → `GIT_MAIN_ROOT`. The
@@ -69,7 +70,7 @@ heredoc are blocked. So the context file must be written *before* entering a wor
 and any later update from inside one falls back to the worktree's own
 `.claude/workflow/{TICKET}-context.json`. Readers therefore check both locations.
 
-If `{roadmapFile}` exists and has an entry for the ticket, use it to supplement (never
+If `roadmapFile` is set, the file exists and it has an entry for the ticket, use it to supplement (never
 override) the user's description.
 
 ## Step 1: Resume or start

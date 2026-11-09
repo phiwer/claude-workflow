@@ -110,10 +110,14 @@ the residue goes to you instead of looping again.
 {
   "specDir": "docs/specs",
   "designTemplate": "default",
-  "roadmapFile": "ROADMAP.md",
   "worktreesEnabled": false
 }
 ```
+
+`roadmapFile` is optional and unset by default. Set it (e.g. `"roadmapFile": "ROADMAP.md"`)
+only if the project keeps its tickets in a file rather than an issue tracker: `/wf-design` then
+reads a ticket's entry from it, and `/wf-close` marks the ticket complete. `/wf-init` offers it
+when it finds a `ROADMAP.md`, `BACKLOG.md` or `TODO.md`.
 
 `designTemplate` picks the design doc template. Three are bundled:
 

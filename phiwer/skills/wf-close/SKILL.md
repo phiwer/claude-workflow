@@ -17,7 +17,7 @@ $ARGUMENTS
 
 ## Step 0: Config and doc
 
-Same as `/wf-build` Step 0: read config (`specDir`, `roadmapFile` = `ROADMAP.md`) and set
+Same as `/wf-build` Step 0: read config (`specDir`, and `roadmapFile` only if set) and set
 `{prefix}` and `{legacyDocDir}` the same way, find the doc
 and context file — globbing both `{GIT_MAIN_ROOT}/.claude/workflow/` and
 `{GIT_MAIN_ROOT}/.claude/worktrees/*/.claude/workflow/` — and enter the worktree if one is
@@ -92,7 +92,8 @@ If `.claude/context/` exists, regenerate `.claude/context/{agent}.md` for each a
 
 ## Step 5: Roadmap
 
-If `{roadmapFile}` exists, mark the ticket complete.
+Only if `roadmapFile` is set and the file exists: mark the ticket complete in it. Otherwise
+skip this step; the ticket's status lives in the issue tracker.
 
 ## Step 6: Token totals
 

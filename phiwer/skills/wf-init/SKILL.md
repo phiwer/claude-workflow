@@ -237,20 +237,24 @@ paths they chose.
 
 ### Step 4: Write Project Config
 
-Ask the user to confirm path defaults:
+Ask the user to confirm the spec directory:
 
 Use AskUserQuestion:
-- header: "Project paths"
-- question: "Confirm or adjust the workflow paths for this project:"
-- option1: label="Use defaults (docs/specs, ROADMAP.md)", description="specDir=docs/specs: each spec goes in a folder per ticket prefix, e.g. docs/specs/tra/tra-1544-short-name.md, and the token ledger is docs/specs/TOKEN_LEDGER.csv. roadmapFile=ROADMAP.md"
-- option2: label="Customize paths", description="Enter custom paths for the spec directory and the roadmap file"
+- header: "Spec directory"
+- question: "Where should specs go?"
+- option1: label="docs/specs (Recommended)", description="Each spec goes in a folder per ticket prefix, e.g. docs/specs/tra/tra-1544-short-name.md, and the token ledger is docs/specs/TOKEN_LEDGER.csv"
+- option2: label="Custom path", description="Enter another directory"
 
-If "Use defaults" — write config with defaults.
-If "Customize paths" — ask a follow-up for each path (or accept an "Other" text input).
+Note whether `{specDir}` exists; if not, it will be created by the first `/wf-design`.
 
-Before writing, check:
-- Does `{specDir}` exist? Note it will be created by the first `/wf-design`.
-- Does `{roadmapFile}` exist? Optional; `/wf-design` uses a ticket's roadmap entry when present.
+**Roadmap file (optional).** Projects that track tickets in an issue tracker (Jira, GitHub
+Issues) have no roadmap file; projects without one may keep their board in the repo. Look for
+one at the repo root: `ROADMAP.md`, `BACKLOG.md`, `TODO.md`.
+- None found: don't ask, and leave `roadmapFile` out of the config.
+- Found: use AskUserQuestion (header "Roadmap"): "Use {file} as the roadmap? /wf-design reads
+  a ticket's entry from it and /wf-close marks the ticket complete in it." Options:
+  "Yes, use {file} (Recommended)" and "No, tickets live in an issue tracker". Set
+  `roadmapFile` only on yes.
 
 Then ask about the design doc template:
 
@@ -289,7 +293,7 @@ Write `.claude/workflow/project-config.json`:
 {
   "specDir": "{specDir}",
   "designTemplate": "{default | frontend | ddd-hexagonal | path}",
-  "roadmapFile": "{roadmapFile}",
+  "roadmapFile": "{path, only if the user chose one; otherwise omit the key}",
   "worktreesEnabled": {true or false}
 }
 ```
@@ -419,7 +423,7 @@ Otherwise display:
 ### Config
 - Spec directory: {specDir} (specs in {specDir}/<ticket prefix>/)
 - Design doc template: {designTemplate}
-- Roadmap file: {roadmapFile}
+- Roadmap file: {roadmapFile, or "none"}
 - Token ledger: {specDir}/TOKEN_LEDGER.csv (created on the first /wf-design — commit it like
   any other file; it's the only durable, structured, cross-feature record of what each phase
   cost and who ran it, unlike the per-feature context.json which is gitignored and deleted by
