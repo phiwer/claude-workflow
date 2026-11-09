@@ -242,7 +242,7 @@ Ask the user to confirm path defaults:
 Use AskUserQuestion:
 - header: "Project paths"
 - question: "Confirm or adjust the workflow paths for this project:"
-- option1: label="Use defaults (docs/design, docs/specs, ROADMAP.md)", description="designDir=docs/design, specDir=docs/specs (token ledger), archiveDir=docs/specs/archive (older specs, scanned for rule citations), roadmapFile=ROADMAP.md"
+- option1: label="Use defaults (docs/design, docs/specs, ROADMAP.md)", description="designDir=docs/design, specDir=docs/specs (SPECS_INDEX.md, if any; pre-2.2 token ledger), archiveDir=docs/specs/archive (older specs, scanned for rule citations), roadmapFile=ROADMAP.md"
 - option2: label="Customize paths", description="Enter custom paths for design docs, spec directory, archive, and roadmap file"
 
 If "Use defaults" — write config with defaults.
@@ -383,7 +383,7 @@ Otherwise display:
 - Spec directory: {specDir}
 - Archive directory: {archiveDir}
 - Roadmap file: {roadmapFile}
-- Token ledger: {specDir}/TOKEN_LEDGER.csv (created on the first /wf-design — commit it like
+- Token ledger: {designDir}/TOKEN_LEDGER.csv (created on the first /wf-design — commit it like
   any other file; it's the only durable, structured, cross-feature record of what each phase
   cost and who ran it, unlike the per-feature context.json which is gitignored and deleted by
   /wf-close)

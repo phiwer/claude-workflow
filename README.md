@@ -117,8 +117,10 @@ the residue goes to you instead of looping again.
 }
 ```
 
-`specDir` holds the token ledger; `archiveDir` holds older specs, still scanned for rule
-citations by `/wf-close`.
+The token ledger lives in `designDir`. `specDir` holds `SPECS_INDEX.md` (updated by `/wf-close`
+if present) and, before 2.2, the ledger: when a phase finds `{specDir}/TOKEN_LEDGER.csv` it asks
+to move it (merging if `designDir` already has one). `archiveDir` holds older specs, still
+scanned for rule citations by `/wf-close`.
 
 ### Worktrees
 
@@ -134,7 +136,7 @@ flight at once without overwriting each other.
 
 Each session (design, build, close, and any resumed `-s2`, `-s3` sessions) records its token
 usage — main session **plus every subagent it spawned** — into the context file and a row in
-`{specDir}/TOKEN_LEDGER.csv`. `/wf-close` writes an all-phases total into the doc and a final
+`{designDir}/TOKEN_LEDGER.csv`. `/wf-close` writes an all-phases total into the doc and a final
 `ALL_PHASES_TOTAL` ledger row. Commit the ledger: it is the only durable, cross-feature record
 of what each ticket cost and who ran it. Best-effort: if the helper
 (`scripts/record-token-usage.py`) is missing, the session proceeds without recording.

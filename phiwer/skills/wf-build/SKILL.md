@@ -104,22 +104,34 @@ When all chunks are ticked:
 
 ## Step 3: Record and hand off
 
-1. Record token usage with phase key `wf-build`, or `wf-build-s2`, `-s3`… if the context
+1. **Ledger location.** The token ledger `{ledger}` is `{designDir}/TOKEN_LEDGER.csv`. Plugin
+   versions before 2.2 kept it at `{specDir}/TOKEN_LEDGER.csv`; if that file exists, ask the
+   user before recording (AskUserQuestion, header "Token ledger"): the ledger is still at
+   `{specDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it
+   to `{designDir}/TOKEN_LEDGER.csv`? If a ledger already exists there too, say the two will be
+   merged by timestamp.
+   - **Move it (Recommended)**: run
+     `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{specDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
+     It is a plain file move with nothing staged; `/wf-close` commits it. If it exits
+     non-zero, show the user its message and use the old path for `{ledger}` this session.
+   - **Keep it in `{specDir}` for now**: `{ledger}` = `{specDir}/TOKEN_LEDGER.csv` for this
+     session only; the next session asks again.
+2. Record token usage with phase key `wf-build`, or `wf-build-s2`, `-s3`… if the context
    already has a `wf-build*` entry (each session records its own row):
    ```bash
    TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
    if [ -f "$TU" ]; then
-     python3 "$TU" --phase {phase-key} --context "{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json" --ledger "{specDir}/TOKEN_LEDGER.csv" --ticket "{TICKET}"
+     python3 "$TU" --phase {phase-key} --context "{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json" --ledger "{ledger}" --ticket "{TICKET}"
    else
      echo "token-usage: script not found, skipping (best-effort)"
    fi
    ```
    The ledger's `subagent_total` column is the implementers' and reviewers' share.
-2. Set `lastPhase: "wf-build"` in `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`
+3. Set `lastPhase: "wf-build"` in `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json`
    (absolute path; a relative one resolves inside the worktree). If you entered a worktree in
    Step 0, this write is refused by worktree isolation — write the worktree's own
    `.claude/workflow/{TICKET}-context.json` instead and say so in the Step 3 summary, so the
    user knows the main-root copy is stale.
-3. Display: chunks built, commits, review verdict and passes, test result, anything handed to
+4. Display: chunks built, commits, review verdict and passes, test result, anything handed to
    the user. Then:
    > **Next**: start a new session and run `/wf-close {TICKET}`.

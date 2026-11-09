@@ -85,11 +85,24 @@ columns.
 
 ## Step 6: Token totals
 
-Before deleting the context file:
+**Ledger location.** The token ledger `{ledger}` is `{designDir}/TOKEN_LEDGER.csv`. Plugin
+versions before 2.2 kept it at `{specDir}/TOKEN_LEDGER.csv`; if that file exists, ask the user
+before recording (AskUserQuestion, header "Token ledger"): the ledger is still at
+`{specDir}/TOKEN_LEDGER.csv` and the plugin now keeps it next to the design docs, so move it to
+`{designDir}/TOKEN_LEDGER.csv`? If a ledger already exists there too, say the two will be
+merged by timestamp.
+- **Move it (Recommended)**: run
+  `python3 "{SKILL_DIR}/../../scripts/record-token-usage.py" --mode migrate-ledger --from-ledger "{specDir}/TOKEN_LEDGER.csv" --ledger "{designDir}/TOKEN_LEDGER.csv"`.
+  It is a plain file move with nothing staged; Step 7 commits it. If it exits non-zero, show
+  the user its message and use the old path for `{ledger}`.
+- **Keep it in `{specDir}`**: `{ledger}` = `{specDir}/TOKEN_LEDGER.csv`; the next session asks
+  again.
+
+Then, before deleting the context file:
 ```bash
 TU="{SKILL_DIR}/../../scripts/record-token-usage.py"  # {SKILL_DIR} = the "Base directory for this skill" shown when this skill loaded
 CTX="{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json"
-LEDGER="{specDir}/TOKEN_LEDGER.csv"
+LEDGER="{ledger}"
 if [ -f "$TU" ]; then
   python3 "$TU" --phase wf-close --context "$CTX" --ledger "$LEDGER" --ticket "{TICKET}"
   python3 "$TU" --mode total --context "$CTX" --artifact "{doc path}" --ledger "$LEDGER" --ticket "{TICKET}"
@@ -105,9 +118,12 @@ committing.
 ## Step 7: Commit and finish
 
 1. Commit the doc, rule, roadmap and ledger changes following the project's commit rules (one
-   commit for the doc close-out including `{specDir}/TOKEN_LEDGER.csv`, a separate one for rule
-   changes). The ledger is the only durable per-phase record once the context file is deleted,
-   so it must be committed, even if it was untracked before.
+   commit for the doc close-out including `{ledger}`, a separate one for rule changes). The
+   ledger is the only durable per-phase record once the context file is deleted, so it must be
+   committed, even if it was untracked before. If this or an earlier session moved the ledger
+   and `git status` shows `{specDir}/TOKEN_LEDGER.csv` as deleted, stage that deletion in the
+   same commit (`git add -A -- {specDir}/TOKEN_LEDGER.csv {designDir}/TOKEN_LEDGER.csv`) so git
+   records a rename.
 2. Delete the context file from **both** locations it may exist in:
    `{GIT_MAIN_ROOT}/.claude/workflow/{TICKET}-context.json` and
    `{worktreePath}/.claude/workflow/{TICKET}-context.json`. If you are inside the worktree,
