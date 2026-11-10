@@ -288,6 +288,16 @@ Use AskUserQuestion:
 
 Set `worktreesEnabled` to `true` or `false` accordingly.
 
+Then ask whether the workflow files are shared with the team:
+
+Use AskUserQuestion:
+- header: "Share files?"
+- question: "Should the workflow files be committed for your teammates, or stay local to your clone? Agents in `.claude/agents/` load in every Claude Code session in the repo, so committing them adds them for everyone."
+- option1: label="Local only (Recommended when colleagues don't use this workflow)", description="Hide agents, context excerpts, config, specs and a project template via .git/info/exclude (per clone, no shared file touched). Nothing shows in git status."
+- option2: label="Share with the team", description="Agents, context and specs can be committed; only .claude/workflow/ is added to .gitignore"
+
+Set `localOnly` to `true` or `false`. Do not store it in `project-config.json`.
+
 Write `.claude/workflow/project-config.json`:
 ```json
 {
@@ -298,16 +308,27 @@ Write `.claude/workflow/project-config.json`:
 }
 ```
 
-Then ensure `.claude/workflow/` is git-ignored. This directory holds machine-local config
-(`project-config.json`) and transient per-feature state (`{FEATURE-ID}-context.json`) that
-must not be shared — unlike `.claude/agents/` and `.claude/context/`, which are committed.
+Then keep the right files out of git. `.claude/workflow/` holds machine-local config
+(`project-config.json`) and transient per-feature state (`{FEATURE-ID}-context.json`), so it is
+never shared. Run `git rev-parse --is-inside-work-tree 2>/dev/null` first; if it does not print
+`true`, skip this.
 
-1. Run `git rev-parse --is-inside-work-tree 2>/dev/null` — if it does not print `true`,
-   skip this (not a git repo).
-2. Read `.gitignore` at the repo root (or start empty if absent).
-3. If no existing line matches `.claude/workflow/` (or a broader `.claude/` ignore that
-   already covers it), append `.claude/workflow/` on its own line. Do not duplicate an entry
-   that is already present, and do not remove or reorder existing lines.
+**`localOnly` is false:**
+1. Read `.gitignore` at the repo root (or start empty if absent).
+2. If no existing line matches `.claude/workflow/` (or a broader `.claude/` ignore that already
+   covers it), append `.claude/workflow/` on its own line. Do not duplicate an entry or remove
+   or reorder existing lines.
+
+**`localOnly` is true:** do not touch `.gitignore`. Append to the local exclude file
+(`git rev-parse --git-path info/exclude`; it is per clone and never pushed), skipping lines
+already present:
+- `.claude/workflow/`, `.claude/agents/`, `.claude/context/`
+- `{specDir}/` (and, if `{specDir}` is a path inside the repo, nothing else for specs)
+- the project template's path, if `designTemplate` is a path inside the repo
+Then run `git status --short` and tell the user what is still visible. Exclude rules do not
+hide files that are already tracked, so report any workflow file git already tracks instead of
+claiming it is hidden. Also tell the user the agents still load in their own sessions in this
+repo; only teammates are unaffected.
 
 ### Step 4b: Move specs to the per-prefix layout
 
@@ -421,6 +442,7 @@ Otherwise display:
 {list each .claude/agents/{name}.md created or skipped}
 
 ### Config
+- Sharing: {local only (via .git/info/exclude) | shared via git}
 - Spec directory: {specDir} (specs in {specDir}/<ticket prefix>/)
 - Design doc template: {designTemplate}
 - Roadmap file: {roadmapFile, or "none"}
