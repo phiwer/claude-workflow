@@ -93,7 +93,14 @@ is explicitly listed, not hidden behind a vague "Other".
 
 - Each question: `multiSelect: true`, up to 4 options
 - Group by domain for the question label (e.g., "Backend/data agents", "Frontend/UX agents")
-- Pre-select candidates that match detected signals
+- AskUserQuestion cannot pre-select; instead put candidates that match detected signals first
+  and mark them "(Recommended)"
+- **Ask this agent batch in its own AskUserQuestion call, and nothing else in it.** Never add
+  the spec directory, roadmap, template, worktree or sharing questions to it: those are asked
+  later (Step 4), one AskUserQuestion call each, only after this one returns. Merged calls
+  leave the user with "you haven't answered all questions" for a question they never saw.
+- Answers must not be required: a multi-select left empty means "none of these". If a
+  question is reported as unanswered, treat it as none selected and carry on; never stall.
 
 **Suggested groupings** (only include groups with ≥1 detected candidate):
 - Group A ("Backend / data"): backend-dev, database-dev, api-designer, devops
@@ -237,7 +244,8 @@ paths they chose.
 
 ### Step 4: Write Project Config
 
-Ask the user to confirm the spec directory:
+Ask the user to confirm the spec directory. **Every question in this step is its own
+AskUserQuestion call, asked one after another, never batched with another question:**
 
 Use AskUserQuestion:
 - header: "Spec directory"
